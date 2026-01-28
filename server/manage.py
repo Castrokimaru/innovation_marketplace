@@ -5,7 +5,7 @@ from flask.cli import FlaskGroup
 # Initialize migrate
 migrate = Migrate(app, db)
 
-# Create a CLI group
+# Create CLI group
 cli = FlaskGroup(app)
 
 if __name__ == "__main__":
