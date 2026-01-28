@@ -1,0 +1,231 @@
+'use client'
+
+import { useState } from 'react'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  CheckCircle,
+  Clock,
+  XCircle,
+  MoreVertical,
+} from 'lucide-react'
+
+const projects = [
+  {
+    id: 1,
+    title: 'AI Chat Application',
+    author: 'Sarah Johnson',
+    category: 'AI/ML',
+    status: 'approved',
+    views: 1250,
+    likes: 180,
+    submitted: '2025-01-28',
+  },
+  {
+    id: 2,
+    title: 'E-commerce Platform',
+    author: 'Mike Chen',
+    category: 'Web',
+    status: 'pending',
+    views: 450,
+    likes: 65,
+    submitted: '2025-01-27',
+  },
+  {
+    id: 3,
+    title: 'Mobile Weather App',
+    author: 'Alex Kipchoge',
+    category: 'Mobile',
+    status: 'approved',
+    views: 890,
+    likes: 125,
+    submitted: '2025-01-26',
+  },
+  {
+    id: 4,
+    title: 'Task Management System',
+    author: 'Emma Williams',
+    category: 'Productivity',
+    status: 'rejected',
+    views: 120,
+    likes: 15,
+    submitted: '2025-01-25',
+  },
+  {
+    id: 5,
+    title: 'Fitness Tracker App',
+    author: 'David Okonkwo',
+    category: 'Health & Wellness',
+    status: 'pending',
+    views: 320,
+    likes: 45,
+    submitted: '2025-01-24',
+  },
+  {
+    id: 6,
+    title: 'Social Network Platform',
+    author: 'Lisa Anderson',
+    category: 'Social',
+    status: 'approved',
+    views: 2100,
+    likes: 310,
+    submitted: '2025-01-23',
+  },
+]
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'approved':
+      return <CheckCircle className="h-4 w-4 text-green-600" />
+    case 'pending':
+      return <Clock className="h-4 w-4 text-yellow-600" />
+    case 'rejected':
+      return <XCircle className="h-4 w-4 text-red-600" />
+    default:
+      return null
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'approved':
+      return 'bg-green-500/10 text-green-700 dark:text-green-400'
+    case 'pending':
+      return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+    case 'rejected':
+      return 'bg-red-500/10 text-red-700 dark:text-red-400'
+    default:
+      return 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
+  }
+}
+
+export default function ProjectsManagement() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
+
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch =
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.author.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = filterStatus === 'all' || project.status === filterStatus
+    return matchesSearch && matchesFilter
+  })
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
+        <p className="mt-2 text-muted-foreground">Approve, review, or manage student projects</p>
+      </div>
+
+      {/* Search and Filter */}
+      <Card className="p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by title or author..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+              <Filter className="h-4 w-4" />
+              All
+            </Button>
+            {['Approved', 'Pending', 'Rejected'].map((status) => (
+              <Button
+                key={status}
+                variant={filterStatus === status.toLowerCase() ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterStatus(status.toLowerCase())}
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Projects Table */}
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="px-6 py-4 text-left font-semibold text-foreground">Project</th>
+                <th className="px-6 py-4 text-left font-semibold text-foreground">Author</th>
+                <th className="px-6 py-4 text-left font-semibold text-foreground">Category</th>
+                <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
+                <th className="px-6 py-4 text-center font-semibold text-foreground">Views</th>
+                <th className="px-6 py-4 text-center font-semibold text-foreground">Likes</th>
+                <th className="px-6 py-4 text-left font-semibold text-foreground">Submitted</th>
+                <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProjects.map((project) => (
+                <tr key={project.id} className="border-b border-border/50 hover:bg-muted/30">
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-foreground">{project.title}</p>
+                  </td>
+                  <td className="px-6 py-4 text-foreground/70">{project.author}</td>
+                  <td className="px-6 py-4 text-foreground/70">{project.category}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(project.status)}
+                      <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(project.status))}>
+                        {project.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center text-foreground/70">{project.views}</td>
+                  <td className="px-6 py-4 text-center text-foreground/70">{project.likes}</td>
+                  <td className="px-6 py-4 text-foreground/70">{project.submitted}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-center gap-2">
+                      <Button variant="ghost" size="sm" title="View">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" title="Edit">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" title="Delete" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Showing {filteredProjects.length} of {projects.length} projects
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" disabled>
+            Previous
+          </Button>
+          <Button variant="outline">Next</Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function cn(...classes: any[]) {
+  return classes.filter(Boolean).join(' ')
+}
