@@ -10,7 +10,7 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="font-bold text-xl text-primary">
-              🚀 Moringa Innovation
+                Moringa Innovation
             </Link>
             <div className="hidden md:flex gap-6">
               <Link href="/projects" className="text-sm font-medium text-foreground/70 hover:text-foreground transition">
