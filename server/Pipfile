@@ -4,14 +4,19 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+faker = "*"
 flask = "*"
-flask-migrate = "*" #alembic
-flask-sqlalchemy = "*" #sqlalchemy
+flask-migrate = "*"
+flask-restful = "*" 
+flask-sqlalchemy = "*"
+Werkzeug = "*"
 importlib-metadata = "*"
 importlib-resources = "*"
-sqlalchemy_serializer = "*"
-flask-restful = "*"
-flask-cors = "*"
+ipdb = "*"
+sqlalchemy-serializer = "*"
+flask_cors="*"
+flask-bcrypt="*"
+flask_jwt_extended="*"
 
 [dev-packages]
 
