@@ -1,9 +1,14 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Menu, Search } from 'lucide-react'
+import { Menu, Search, ShoppingCart } from 'lucide-react'
+import { useCart } from '@/components/cart/cart-context'
 
 export function Navbar() {
+  const { totalItems } = useCart()
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -38,6 +43,15 @@ export function Navbar() {
             </Link>
             <Link href="/submit-project">
               <Button className="bg-primary hover:bg-primary/90">Post Project</Button>
+            </Link>
+
+            <Link href="/cart" className="relative">
+              <Button variant="outline" size="icon">
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-xs text-white rounded-full px-2 py-0.5">{totalItems}</span>
+              )}
             </Link>
           </div>
 
