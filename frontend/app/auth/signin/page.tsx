@@ -38,16 +38,17 @@ export default function SignInPage() {
       // console.log('Sign in attempt:', { email, password })
       // // Redirect to dashboard or home
       // window.location.href = '/'
-
       const res = await signIn("credentials", {
         email,
         password,
-        redirect: false,
-      });
+        redirect: false
+      })
 
-   if (!res?.error) {
-      router.push("/admin");
-    }
+      if (!res?.error){
+        router.push('/admin')
+      }
+
+      console.log("Something is wrong")
 
     } catch (err) {
       setError('Sign in failed. Please try again.')
