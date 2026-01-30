@@ -34,6 +34,16 @@ def seed_roles():
 
     db.session.commit()
 
+def clear_seed_data():
+    # Delete admin user
+    admin = User.query.filter_by(email="admin@moringa.co.ke").first()
+    if admin:
+        db.session.delete(admin)
+
+    # Delete roles
+    UserRole.query.delete()
+
+    db.session.commit()
 
 def seed_admin():
     admin_role = UserRole.query.filter_by(name="admin").first()
@@ -47,7 +57,7 @@ def seed_admin():
         first_name="Fred",
         last_name="Chen",
         email="admin@moringa.co.ke",
-        password_hash=generate_password_hash("admin123"),
+        password_hash=generate_password_hash("Admin1234"),
         role_id=admin_role.id,
         created_at=datetime.utcnow(),
         status="active"
