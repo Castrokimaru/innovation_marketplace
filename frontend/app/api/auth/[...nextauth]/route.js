@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const handler = NextAuth({
   // your auth config here
-  secret: '/0AbKDKeShhdg06YqGmajdovMjZr0Y/gaffl1V9SPsg8=',
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
   CredentialsProvider({
     // The name to display on the sign in form (e.g. "Sign in with...")
@@ -18,9 +18,8 @@ const handler = NextAuth({
     },
     async authorize(credentials, req) {
       // Add logic here to look up the user from the credentials supplied
-    //   const user = { id: "1", name: "J Smith", email: "jsmith@example.com" }
 
-    const res = await fetch("http://localhost:5555/login", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/login`, {
         method: 'POST',
         body: JSON.stringify(credentials),
         headers: {"Content-Type": "application/json"}
@@ -28,14 +27,33 @@ const handler = NextAuth({
 
     const user = await res.json()
     if(res.ok && user){
-        return user
+        return {
+          id: user.id,
+          email: user.email,
+          username: user.username, 
+        };
     }
 
     return null
      
     }
   })
-]
+],
+
+callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.username = user.username; 
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.id = token.id;
+      session.user.username = token.username; 
+      return session;
+    },
+  },
 
 
 })
