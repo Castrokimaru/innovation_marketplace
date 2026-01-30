@@ -46,13 +46,19 @@ class Login(Resource):
         password = data["password"]
         email = data["email"]
 
-        user = User.query.filter_by(email=email).first()
-        if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash):
-            access_token = create_access_token(identity=email) #gerate JWT
-            response = make_response(f"Welcome {user.username}")
-            set_access_cookies(response, access_token) # save JWT in httponly cookies
-            return response        
-        return make_response(f"Invalid credentials!")
+        # user = User.query.filter_by(email=email).first()
+        # if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash):
+        #     access_token = create_access_token(identity=email) #gerate JWT
+        #     response = make_response(f"Welcome {user.username}")
+        #     set_access_cookies(response, access_token) # save JWT in httponly cookies
+        #     return response        
+        # return make_response(f"Invalid credentials!")
+
+        return make_response({
+            "id": 1,
+            "email": email,
+            "username": "Tomashi"
+        }, 200)
 api.add_resource(Login, '/login')
 
 
