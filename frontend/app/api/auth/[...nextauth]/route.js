@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const handler = NextAuth({
   // your auth config here
-  secret: '/0AbKDKeShhdg06YqGmajdovMjZr0Y/gaffl1V9SPsg8=',
+  secret: 'cjkKzRjUWvsghv39UKJSQ8kgg/MeR5oFbvJy4UW9adM=',
   providers: [
   CredentialsProvider({
     // The name to display on the sign in form (e.g. "Sign in with...")
@@ -35,7 +35,25 @@ const handler = NextAuth({
      
     }
   })
-]
+],
+
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+        token.email = user.email
+        token.username = user.username
+      }
+      return token
+    },
+
+    async session({ session, token }) {
+      session.user.id = token.id
+      session.user.email = token.email
+      session.user.username = token.username
+      return session
+    }
+  }
 
 
 })

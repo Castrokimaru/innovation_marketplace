@@ -51,7 +51,7 @@ const menuItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
-    const { data: session, status }:any = useSession()
+    const { data: session, status }= useSession()
     
     if (status === "loading") {
     return null
