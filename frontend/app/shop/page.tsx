@@ -1,87 +1,20 @@
 'use client'
 
-import { useState } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ShoppingCart, Heart } from 'lucide-react'
-
-const PRODUCTS = [
-  {
-    id: 1,
-    name: 'Moringa Developer Hoodie',
-    price: 2500,
-    image: '👕',
-    color: 'Deep Blue',
-    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    inStock: true,
-    rating: 4.8,
-    reviews: 124,
-  },
-  {
-    id: 2,
-    name: 'Innovation Coffee Mug',
-    price: 800,
-    image: '☕',
-    color: 'White',
-    sizes: ['One Size'],
-    inStock: true,
-    rating: 4.5,
-    reviews: 45,
-  },
-  {
-    id: 3,
-    name: 'Tech Sticker Pack',
-    price: 300,
-    image: '🎨',
-    color: 'Multi-color',
-    sizes: ['One Size'],
-    inStock: true,
-    rating: 4.6,
-    reviews: 67,
-  },
-  {
-    id: 4,
-    name: 'Moringa Branded Cap',
-    price: 1200,
-    image: '🧢',
-    color: 'Black',
-    sizes: ['One Size'],
-    inStock: true,
-    rating: 4.7,
-    reviews: 89,
-  },
-  {
-    id: 5,
-    name: 'Developer T-Shirt',
-    price: 1500,
-    image: '👔',
-    color: 'Navy Blue',
-    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    inStock: true,
-    rating: 4.9,
-    reviews: 156,
-  },
-  {
-    id: 6,
-    name: 'Moringa Water Bottle',
-    price: 1000,
-    image: '🚰',
-    color: 'Silver',
-    sizes: ['One Size'],
-    inStock: true,
-    rating: 4.4,
-    reviews: 38,
-  },
-]
-
+import { PRODUCTS } from '@/lib/products'
+import { useCart } from '@/components/cart/cart-context'
 export default function ShopPage() {
-  const [cart, setCart] = useState<number[]>([])
+  const { addToCart, cart } = useCart()
 
-  const addToCart = (id: number) => {
-    setCart([...cart, id])
+  // helper to show qty in local grid
+  const getQty = (id: number) => {
+    const entry = cart.find((c) => c.id === id)
+    return entry ? entry.quantity : 0
   }
 
   return (
@@ -133,7 +66,7 @@ export default function ShopPage() {
                       )}
                     </div>
 
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex gap-2 pt-2 items-center">
                       <Button
                         className="flex-1 bg-primary hover:bg-primary/90"
                         onClick={() => addToCart(product.id)}
@@ -142,6 +75,7 @@ export default function ShopPage() {
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         Add to Cart
                       </Button>
+                      <div className="text-sm text-foreground/60">{getQty(product.id) > 0 ? `In cart: ${getQty(product.id)}` : ''}</div>
                       <Button variant="outline" size="icon">
                         <Heart className="h-4 w-4" />
                       </Button>
