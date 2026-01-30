@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 
 const menuItems = [
   {
@@ -53,7 +53,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
     const { data: session, status }:any = useSession()
 
-    console.log(session.user)
+    // console.log(session.user)
 
   return (
     <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-background">
@@ -98,7 +98,7 @@ export function AdminSidebar() {
             <p className="text-xs text-muted-foreground">{status === "authenticated" && (<span>{session?.user.email}</span>)}</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="w-full justify-start gap-2 bg-transparent">
+        <Button variant="outline" size="sm" className="w-full justify-start gap-2 bg-transparent" onClick={()=> signOut({ callbackUrl: '/' })}>
           <LogOut className="h-4 w-4" />
           Sign Out
         </Button>

@@ -46,9 +46,10 @@ export default function SignInPage() {
 
       if (!res?.error){
         router.push('/admin')
+      }else{
+        setError('We are unable to authenticate you!')
       }
 
-      console.log("Something is wrong")
 
     } catch (err) {
       setError('Sign in failed. Please try again.')
