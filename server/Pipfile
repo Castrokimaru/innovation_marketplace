@@ -14,9 +14,9 @@ importlib-metadata = "*"
 importlib-resources = "*"
 ipdb = "*"
 sqlalchemy-serializer = "*"
-flask_cors="*"
+flask-cors="*"
 flask-bcrypt="*"
-flask_jwt_extended="*"
+flask-jwt-extended="*"
 
 [dev-packages]
 
