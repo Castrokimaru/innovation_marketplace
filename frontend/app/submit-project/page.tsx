@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Upload, Plus, X } from 'lucide-react'
+import Autocomplete from '@/components/ui/autocomplete'
 
 const CATEGORIES = [
   'HealthTech',
@@ -58,6 +59,17 @@ export default function SubmitProjectPage() {
     videoLink: '',
     teamMembers: [''],
   })
+
+  // Mock known users — ideally fetched from API
+  const KNOWN_USERS = [
+    'Alice Johnson',
+    'Bob Smith',
+    'Carol Davis',
+    'Daniel Otieno',
+    'Emily Wanjiru',
+    'Faith Njeri',
+    'George Kamau',
+  ]
 
   const [selectedTechs, setSelectedTechs] = useState<string[]>([])
 
@@ -258,10 +270,11 @@ export default function SubmitProjectPage() {
                 <div className="space-y-3">
                   {formData.teamMembers.map((member, index) => (
                     <div key={index} className="flex gap-2">
-                      <Input
-                        placeholder="Team member name"
+                      <Autocomplete
                         value={member}
-                        onChange={(e) => handleUpdateTeamMember(index, e.target.value)}
+                        onChange={(v) => handleUpdateTeamMember(index, v)}
+                        options={KNOWN_USERS}
+                        placeholder="Start typing a team member's name"
                         required
                       />
                       {formData.teamMembers.length > 1 && (
