@@ -53,7 +53,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
     const { data: session, status }:any = useSession()
 
-    console.log(session.user)
+    // console.log(session.user)
 
   return (
     <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-background">
