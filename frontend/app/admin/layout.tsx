@@ -1,12 +1,14 @@
+'use client'
 import React from "react"
 import { AdminSidebar } from '@/components/admin-sidebar'
 import { Button } from '@/components/ui/button'
 import { Menu } from 'lucide-react'
+import { SessionProvider } from "next-auth/react"
 
-export const metadata = {
-  title: 'Admin Dashboard | Moringa Innovation Marketplace',
-  description: 'Manage projects, users, merchandise, and analytics',
-}
+// export const metadata = {
+//   title: 'Admin Dashboard | Moringa Innovation Marketplace',
+//   description: 'Manage projects, users, merchandise, and analytics',
+// }
 
 export default function AdminLayout({
   children,
@@ -15,6 +17,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex h-screen bg-background">
+      <SessionProvider>
       <AdminSidebar />
       
       <div className="flex-1 flex flex-col lg:ml-64">
@@ -33,6 +36,7 @@ export default function AdminLayout({
           </div>
         </main>
       </div>
+      </SessionProvider>
     </div>
   )
 }

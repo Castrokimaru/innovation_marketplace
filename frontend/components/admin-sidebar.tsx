@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useSession } from 'next-auth/react'
 
 const menuItems = [
   {
@@ -50,6 +51,9 @@ const menuItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+    const { data: session, status }:any = useSession()
+
+    console.log(session.user)
 
   return (
     <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-background">
@@ -86,8 +90,12 @@ export function AdminSidebar() {
         <div className="mb-4 flex items-center gap-3 rounded-lg bg-muted p-3">
           <div className="h-8 w-8 rounded-full bg-primary/20" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">Admin User</p>
-            <p className="text-xs text-muted-foreground">admin@moringa.com</p>
+                        
+
+            <p className="text-sm font-medium text-foreground truncate">
+              {status === "authenticated" && (<span>{session?.user.username}</span>)}
+            </p>
+            <p className="text-xs text-muted-foreground">{status === "authenticated" && (<span>{session?.user.email}</span>)}</p>
           </div>
         </div>
         <Button variant="outline" size="sm" className="w-full justify-start gap-2 bg-transparent">

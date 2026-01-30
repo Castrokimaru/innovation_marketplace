@@ -15,6 +15,7 @@ import {
   XCircle,
   MoreVertical,
 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
 const projects = [
   {
@@ -106,6 +107,8 @@ const getStatusColor = (status: string) => {
 }
 
 export default function ProjectsManagement() {
+      const { data: session, status }:any = useSession()
+  
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
 
@@ -122,6 +125,8 @@ export default function ProjectsManagement() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
         <p className="mt-2 text-muted-foreground">Approve, review, or manage student projects</p>
+            {/* {status === "authenticated" && (<p>Signed in as {session?.user.email}</p>)} */}
+
       </div>
 
       {/* Search and Filter */}

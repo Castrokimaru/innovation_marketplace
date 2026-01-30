@@ -22,6 +22,8 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
 } from 'lucide-react'
+import { useSession } from "next-auth/react"
+
 
 const dashboardStats = [
   {
@@ -115,9 +117,12 @@ const getStatusColor = (status: string) => {
 }
 
 export default function AdminDashboard() {
+    const { data: session, status }:any = useSession()
+
   return (
     <div className="space-y-8">
       {/* Stats Grid */}
+      {status === "authenticated" && (<p>Signed in as {session?.user.email}</p>)}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {dashboardStats.map((stat) => {
           const Icon = stat.icon
