@@ -35,12 +35,10 @@ def seed_roles():
     db.session.commit()
 
 def clear_seed_data():
-    # Delete admin user
     admin = User.query.filter_by(email="admin@moringa.co.ke").first()
     if admin:
         db.session.delete(admin)
 
-    # Delete roles
     UserRole.query.delete()
 
     db.session.commit()
