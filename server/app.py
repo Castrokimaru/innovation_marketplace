@@ -2,6 +2,13 @@ from flask import Flask, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource # Enfocing RESTFul principles
 from flask_cors import CORS
+from flask_bcrypt import bcrypt
+
+from flask_jwt_extended import (
+    JWTManager, create_access_token,
+    jwt_required, get_jwt_identity,
+    set_access_cookies, unset_jwt_cookies
+)
 from models import db, User, UserRole, Project, UserProject, Category, ProjectCategory, Merchandise, Order, OrderMerchandise
 
 
@@ -33,7 +40,6 @@ api = Api(app) # we link our flask app to flaks_restful
 
 
 
-
 class Login(Resource):
     def post(self):
         data = request.get_json()
@@ -44,10 +50,13 @@ class Login(Resource):
         if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash):
             access_token = create_access_token(identity=email) #gerate JWT
             response = make_response(f"Welcome {user.username}")
-            # response.set_cookie("username", user.username, httponly=True, max_age=3600)
             set_access_cookies(response, access_token) # save JWT in httponly cookies
             return response        
         return make_response(f"Invalid credentials!")
 api.add_resource(Login, '/login')
+
+
+if __name__ == '__main__':
+    app.run(port=5555, debug=True)
 
 
