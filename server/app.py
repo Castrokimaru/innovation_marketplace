@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource # Enfocing RESTFul principles
 from flask_cors import CORS
 from flask_bcrypt import bcrypt
+from resources.merchandise import MerchandiseList
 
 from flask_jwt_extended import (
     JWTManager, create_access_token,
@@ -59,7 +60,14 @@ class Login(Resource):
             "email": email,
             "username": "Tomashi"
         }, 200)
+    
+
+
 api.add_resource(Login, '/login')
+api.add_resource(MerchandiseList, "/merchandise")
+
+
+
 
 
 if __name__ == '__main__':
