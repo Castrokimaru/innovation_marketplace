@@ -3,8 +3,11 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource # Enfocing RESTFul principles
 from flask_cors import CORS
 from flask_bcrypt import bcrypt
+from werkzeug.security import check_password_hash
+from resources.projects import ProjectList, ProjectDetail, ProjectApproval
 from resources.merchandise import MerchandiseList
-
+from resources.orders import OrderList
+from resources.auth import Signup, Login
 from flask_jwt_extended import (
     JWTManager, create_access_token,
     jwt_required, get_jwt_identity,
@@ -41,30 +44,34 @@ api = Api(app) # we link our flask app to flaks_restful
 
 
 
-class Login(Resource):
-    def post(self):
-        data = request.get_json()
-        password = data["password"]
-        email = data["email"]
+# class Login(Resource):
+#     def post(self):
+#         data = request.get_json()
+#         password = data["password"]
+#         email = data["email"]
 
-        # user = User.query.filter_by(email=email).first()
-        # if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash):
-        #     access_token = create_access_token(identity=email) #gerate JWT
-        #     response = make_response(f"Welcome {user.username}")
-        #     set_access_cookies(response, access_token) # save JWT in httponly cookies
-        #     return response        
-        # return make_response(f"Invalid credentials!")
 
-        return make_response({
-            "id": 1,
-            "email": email,
-            "username": "Tomashi"
-        }, 200)
+#         return make_response({
+#             "id": 1,
+#             "email": email,
+#             "username": "Tomashi"
+#         }, 200)
     
 
 
-api.add_resource(Login, '/login')
+
+
+
+# api.add_resource(Login, '/login')
+api.add_resource(ProjectList, "/projects")
+api.add_resource(ProjectDetail, "/projects/<int:project_id>")
+api.add_resource(ProjectApproval, "/projects/<int:project_id>/status")
 api.add_resource(MerchandiseList, "/merchandise")
+api.add_resource(OrderList, "/orders")
+api.add_resource(Signup, "/signup")
+api.add_resource(Login, "/login")
+
+
 
 
 
