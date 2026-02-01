@@ -8,7 +8,7 @@ from models import db, Order, OrderMerchandise, Merchandise
 class OrderCreate(Resource):
     @jwt_required()
     def post(self):
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         data = request.get_json()
 
         order = Order(
