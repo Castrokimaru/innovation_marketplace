@@ -17,7 +17,12 @@ class Signup(Resource):
         if User.query.filter_by(email=data["email"]).first():
             return {"error": "Email already exists"}, 400
 
-        role = UserRole.query.filter_by(name="student").first()
+        role_name = data.get("role", "student").lower() 
+
+        if role_name not in ["student", "recruiter"]:
+            return {"error": "Invalid role"}, 400
+
+        role = UserRole.query.filter_by(name=role_name).first()
         if not role:
             return {"error": "Roles not seeded"}, 500
 
@@ -32,7 +37,11 @@ class Signup(Resource):
         db.session.add(user)
         db.session.commit()
 
-        return {"message": "Signup successful"}, 201
+        return {
+            "message": f"Signup successful as {role_name}",
+            "user_id": user.id,
+            "role": role_name
+        }, 201
 
 
 class Login(Resource):
