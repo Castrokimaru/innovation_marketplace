@@ -19,7 +19,7 @@ class ProjectList(Resource):
 
     @jwt_required()
     def post(self):
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         data = request.get_json()
 
         project = Project(
