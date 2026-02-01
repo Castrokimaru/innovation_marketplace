@@ -15,6 +15,7 @@ const FEATURED_PROJECTS = [
     technologies: ['React', 'Node.js', 'PostgreSQL'],
     views: 1250,
     rating: 4.8,
+    image: 'https://media.istockphoto.com/id/916632830/photo/doctor-icons-medical-care.jpg?s=2048x2048&w=is&k=20&c=gHJMw9jS3n_WYqgX2UGEwwgBWpakxDzFj3uAa3AcMhE=',
   },
   {
     id: 2,
@@ -25,6 +26,7 @@ const FEATURED_PROJECTS = [
     technologies: ['Next.js', 'Python', 'TensorFlow'],
     views: 980,
     rating: 4.6,
+    image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 3,
@@ -35,6 +37,7 @@ const FEATURED_PROJECTS = [
     technologies: ['Flutter', 'Firebase', 'Stripe'],
     views: 1540,
     rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 4,
@@ -45,6 +48,7 @@ const FEATURED_PROJECTS = [
     technologies: ['Python', 'Arduino', 'AWS'],
     views: 850,
     rating: 4.7,
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
   },
 ]
 
