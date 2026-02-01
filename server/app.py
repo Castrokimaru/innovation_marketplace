@@ -11,6 +11,7 @@ from resources.auth import Signup, Login
 from resources.projects import ProjectList
 from resources.merchandise import MerchandiseList
 from resources.orders import OrderCreate
+from resources.admin import ApproveProject, RejectProject, CategoryCreate, AddContributor
 
 
 def create_app():
@@ -35,6 +36,7 @@ def create_app():
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(OrderCreate, "/orders")
 
+    api.add_resource(CategoryCreate, "/admin/categories")
 
     @app.route("/")
     def home():
