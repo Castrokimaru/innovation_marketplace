@@ -11,8 +11,8 @@ from resources.auth import Signup, Login
 from resources.projects import ProjectList
 from resources.merchandise import MerchandiseList
 from resources.orders import OrderCreate
-from resources.admin import CategoryCreate
-
+from resources.admin import CategoryCreate, ApproveProject, RejectProject
+from resources.recruiters import BrowseProjects
 
 def create_app():
     app = Flask(__name__)
@@ -37,7 +37,10 @@ def create_app():
     api.add_resource(OrderCreate, "/orders")
 
     api.add_resource(CategoryCreate, "/admin/categories")
+    api.add_resource(ApproveProject, "/admin/projects/<int:project_id>/approve")
+    api.add_resource(RejectProject, "/admin/projects/<int:project_id>/reject")
 
+    api.add_resource(BrowseProjects, "/recruiters/projects")
     @app.route("/")
     def home():
         return {"status": "API running"}, 200
