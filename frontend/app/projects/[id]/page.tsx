@@ -7,40 +7,45 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Heart, Share2, Github, Globe, Calendar, Users } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { PROJECTS } from '@/lib/projects'
 
 export default function ProjectDetailPage() {
   const params = useParams()
   const projectId = params.id
 
-  // Mock project data
-  const project = {
-    id: parseInt(projectId as string),
-    title: 'HealthTech Appointment System',
-    description: 'AI-powered healthcare appointment booking platform with real-time clinic sync and automated reminders.',
-    longDescription: `Our HealthTech Appointment System revolutionizes how clinics manage patient appointments. 
-    Built with modern web technologies, it provides a seamless experience for both healthcare providers and patients.
-    
-    Key Features:
-    • Real-time appointment scheduling across multiple clinics
-    • AI-powered availability optimization
-    • Automated SMS/Email reminders
-    • Patient history and preferences tracking
-    • Analytics dashboard for clinic administrators
-    • Mobile-responsive design
-    
-    The platform has been tested with 5 major clinics in Nairobi and shows 40% reduction in no-shows.`,
-    category: 'HealthTech',
-    author: 'Team Alpha',
-    teamMembers: ['Alice Johnson', 'Bob Smith', 'Carol Davis'],
-    technologies: ['React', 'Node.js', 'PostgreSQL', 'Firebase', 'Stripe'],
-    views: 1250,
-    rating: 4.8,
-    reviews: 23,
-    liveLink: 'https://example.com',
-    githubLink: 'https://github.com/example',
-    createdAt: '2024-01-15',
-    status: 'Active',
-    teamSize: 3,
+  interface Project {
+    id: number
+    title: string
+    description: string
+    longDescription: string
+    category: string
+    status: string
+    createdAt: string
+    teamSize: number
+    rating: number
+    reviews: number
+    technologies: string[]
+    liveLink?: string
+    githubLink?: string
+    teamMembers: string[]
+    views: number
+  }
+
+  const project: Project | undefined = PROJECTS.find((p) => p.id === parseInt(projectId as string)) as Project | undefined
+
+  if (!project) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 text-center">
+            <h2 className="text-2xl font-bold">Project not found</h2>
+            <p className="text-foreground/60 mt-2">The project you're looking for doesn't exist.</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -115,11 +120,11 @@ export default function ProjectDetailPage() {
                 <div className="space-y-4">
                   <h2 className="text-2xl font-bold">Technologies Used</h2>
                   <div className="flex flex-wrap gap-3">
-                    {project.technologies.map((tech) => (
+                    {project.technologies.map((tech: string) => (
                       <Badge key={tech} variant="secondary" className="bg-secondary/20">
                         {tech}
                       </Badge>
-                    ))}
+                    ))} 
                   </div>
                 </div>
 
@@ -149,7 +154,7 @@ export default function ProjectDetailPage() {
                 <Card className="p-6 space-y-4">
                   <h3 className="font-bold text-lg">Development Team</h3>
                   <div className="space-y-3">
-                    {project.teamMembers.map((member) => (
+                    {project.teamMembers.map((member: string) => (
                       <div key={member} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold">
                           {member.charAt(0)}
