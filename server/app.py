@@ -6,7 +6,7 @@ from flask_jwt_extended import JWTManager
 
 from models import db
 
-# resources
+
 from resources.auth import Signup, Login
 from resources.projects import ProjectList
 from resources.merchandise import MerchandiseList
@@ -16,16 +16,10 @@ from resources.orders import OrderCreate
 def create_app():
     app = Flask(__name__)
 
-    # --------------------
-    # CONFIG
-    # --------------------
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["JWT_SECRET_KEY"] = "dev-secret-key"  # change later
+    app.config["JWT_SECRET_KEY"] = "dev-secret-key" 
 
-    # --------------------
-    # EXTENSIONS
-    # --------------------
     db.init_app(app)
     Migrate(app, db)
     JWTManager(app)
@@ -33,9 +27,7 @@ def create_app():
 
     api = Api(app)
 
-    # --------------------
-    # ROUTES
-    # --------------------
+
     api.add_resource(Signup, "/signup")
     api.add_resource(Login, "/login")
 
@@ -43,9 +35,7 @@ def create_app():
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(OrderCreate, "/orders")
 
-    # --------------------
-    # HEALTH CHECK
-    # --------------------
+
     @app.route("/")
     def home():
         return {"status": "API running"}, 200
