@@ -26,4 +26,38 @@ class CategoryCreate(Resource):
         db.session.commit()
         return {"message": f"Category '{category.name}' created"}, 201
 
+#approve or reject projects
+class ApproveProject(Resource):
+    @jwt_required()
+    def post(self, project_id):
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
 
+        if user.role.name != "admin":
+            return {"error": "Only admin can approve projects"}, 403
+
+        project = Project.query.get(project_id)
+        if not project:
+            return {"error": "Project not found"}, 404
+
+        project.status = "approved"
+        db.session.commit()
+        return {"message": f"Project '{project.title}' approved"}, 200
+
+
+class RejectProject(Resource):
+    @jwt_required()
+    def post(self, project_id):
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+
+        if user.role.name != "admin":
+            return {"error": "Only admin can reject projects"}, 403
+
+        project = Project.query.get(project_id)
+        if not project:
+            return {"error": "Project not found"}, 404
+
+        project.status = "rejected"
+        db.session.commit()
+        return {"message": f"Project '{project.title}' rejected"}, 200
