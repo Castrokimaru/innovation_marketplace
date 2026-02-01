@@ -10,7 +10,6 @@ class ProjectList(Resource):
         result = []
 
         for p in projects:
-            # Team members
             team = [
                 {
                     "id": up.user.id,
@@ -21,7 +20,7 @@ class ProjectList(Resource):
                 } for up in p.users
             ]
 
-            # Categories
+            
             cats = [
                 {"id": pc.category.id, "name": pc.category.name}
                 for pc in p.categories if pc.category
@@ -58,7 +57,7 @@ class ProjectList(Resource):
         if not all([title, description, video, technologies, submitted_name]):
             return {"error": "Missing required fields"}, 400
 
-        # Create project
+    # Creating the project
         project = Project(
             title=title,
             description=description,
@@ -69,7 +68,7 @@ class ProjectList(Resource):
         db.session.add(project)
         db.session.commit()
 
-        # Link creator
+    # Linking creator
         creator_link = UserProject(
             user_id=user_id,
             project_id=project.id,
@@ -77,7 +76,7 @@ class ProjectList(Resource):
         )
         db.session.add(creator_link)
 
-        # Link team members (skip creator)
+    # Link team members but skip creator
         for member_id in team_members:
             if member_id == user_id:
                 continue
@@ -89,7 +88,7 @@ class ProjectList(Resource):
                     action="contributor"
                 ))
 
-        # Link categories
+    # Link categories
         for cat_id in category_ids:
             category = Category.query.get(cat_id)
             if category:
