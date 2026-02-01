@@ -1,34 +1,46 @@
-from flask_restful import Resource
 from flask import request
-from models import db, Project
+from flask_restful import Resource
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from models import db, Project, UserProject
+
 
 class ProjectList(Resource):
+    def get(self):
+        projects = Project.query.all()
+        return [
+            {
+                "id": p.id,
+                "title": p.title,
+                "status": p.status,
+                "technologies": p.technologies
+            } for p in projects
+        ], 200
+
+    @jwt_required()
     def post(self):
+        user_id = get_jwt_identity()
         data = request.get_json()
 
         project = Project(
             title=data["title"],
             description=data["description"],
+            video=data["video"],
             technologies=data["technologies"],
-            video=data.get("video", ""),
             submitted_name=data["submitted_name"],
-            status="pending"
         )
 
         db.session.add(project)
         db.session.commit()
 
-        return {"message": "Project submitted for review"}, 201
+        # link creator to project
+        link = UserProject(
+            user_id=user_id,
+            project_id=project.id,
+            action="creator"
+        )
 
+        db.session.add(link)
+        db.session.commit()
 
-class ProjectDetail(Resource):
-    def get(self, project_id):
-        project = Project.query.get_or_404(project_id)
-
-        return {
-            "id": project.id,
-            "title": project.title,
-            "description": project.description,
-            "technologies": project.technologies,
-            "status": project.status
-        }, 200
+        return {"message": "Project submitted"}, 201
