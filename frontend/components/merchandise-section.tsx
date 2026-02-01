@@ -10,28 +10,28 @@ const MERCHANDISE = [
     id: 1,
     name: 'Moringa Developer Hoodie',
     price: '2,500 KES',
-    image: '👕',
+    image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80',
     color: 'Deep Blue',
   },
   {
     id: 2,
     name: 'Innovation Coffee Mug',
     price: '800 KES',
-    image: '☕',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
     color: 'White',
   },
   {
     id: 3,
     name: 'Tech Sticker Pack',
     price: '300 KES',
-    image: '🎨',
+    image: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
     color: 'Multi-color',
   },
   {
     id: 4,
     name: 'Moringa Branded Cap',
     price: '1,200 KES',
-    image: '🧢',
+    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
     color: 'Black',
   },
 ]
@@ -51,8 +51,8 @@ export function MerchandiseSection() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {MERCHANDISE.map((item) => (
               <Card key={item.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center text-6xl group-hover:scale-105 transition-transform duration-300">
-                  {item.image}
+                <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="p-6 space-y-4">
                   <div className="space-y-1">
