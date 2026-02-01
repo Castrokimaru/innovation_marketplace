@@ -4,7 +4,7 @@ from models import Project, UserProject, User
 
 class BrowseProjects(Resource):
     def get(self):
-        # Only approved projects
+        # To only see approved projects
         projects = Project.query.filter_by(status="approved").all()
         result = []
 
