@@ -1,68 +1,54 @@
-from flask import Flask, request, make_response
+from flask import Flask
 from flask_migrate import Migrate
-from flask_restful import Api, Resource # Enfocing RESTFul principles
+from flask_restful import Api
 from flask_cors import CORS
-from flask_bcrypt import bcrypt
+from flask_jwt_extended import JWTManager
 
-from flask_jwt_extended import (
-    JWTManager, create_access_token,
-    jwt_required, get_jwt_identity,
-    set_access_cookies, unset_jwt_cookies
-)
-from models import db, User, UserRole, Project, UserProject, Category, ProjectCategory, Merchandise, Order, OrderMerchandise
+from models import db
 
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.json.compact = False
+from resources.auth import Signup, Login
+from resources.projects import ProjectList
+from resources.merchandise import MerchandiseList
+from resources.orders import OrderCreate
+from resources.admin import CategoryCreate, ApproveProject, RejectProject
+from resources.recruiters import BrowseProjects
+
+def create_app():
+    app = Flask(__name__)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["JWT_SECRET_KEY"] = "dev-secret-key" 
+
+    db.init_app(app)
+    Migrate(app, db)
+    JWTManager(app)
+    CORS(app)
+
+    api = Api(app)
 
 
-app.config['JWT_SECRET_KEY'] = 'your-secret-key'
-app.config['JWT_TOKEN_LOCATION'] = ['cookies']
-app.config['JWT_ACCESS_COOKIE_NAME'] = 'access_token_cookie'
-app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # or True with CSRF token
+    api.add_resource(Signup, "/signup")
+    api.add_resource(Login, "/login")
+
+    api.add_resource(ProjectList, "/projects")
+    api.add_resource(MerchandiseList, "/merchandise")
+    api.add_resource(OrderCreate, "/orders")
+
+    api.add_resource(CategoryCreate, "/admin/categories")
+    api.add_resource(ApproveProject, "/admin/projects/<int:project_id>/approve")
+    api.add_resource(RejectProject, "/admin/projects/<int:project_id>/reject")
+
+    api.add_resource(BrowseProjects, "/recruiters/projects")
+    @app.route("/")
+    def home():
+        return {"status": "API running"}, 200
+
+    return app
 
 
+app = create_app()
 
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "*"
-        ]
-    }
-}
-)
-migrate = Migrate(app, db)
-db.init_app(app)
-
-api = Api(app) # we link our flask app to flaks_restful
-
-
-
-class Login(Resource):
-    def post(self):
-        data = request.get_json()
-        password = data["password"]
-        email = data["email"]
-
-        # user = User.query.filter_by(email=email).first()
-        # if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash):
-        #     access_token = create_access_token(identity=email) #gerate JWT
-        #     response = make_response(f"Welcome {user.username}")
-        #     set_access_cookies(response, access_token) # save JWT in httponly cookies
-        #     return response        
-        # return make_response(f"Invalid credentials!")
-
-        return make_response({
-            "id": 1,
-            "email": email,
-            "username": "Tomashi"
-        }, 200)
-api.add_resource(Login, '/login')
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(port=5555, debug=True)
-
-

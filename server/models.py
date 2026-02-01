@@ -19,7 +19,6 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(50), default="active", nullable=False)
 
-    # Each user belongs to one role 
     role = db.relationship("UserRole", back_populates="users")
     projects = db.relationship("UserProject", back_populates="user")
     orders = db.relationship("Order", back_populates="user")
@@ -32,7 +31,6 @@ class UserRole(db.Model):
     name = db.Column(db.String(50), nullable=False)
     description= db.Column(db.String(100), nullable=False)
 
-    # One role can be assigned to many users
     users = db.relationship("User", back_populates="role")
 
    
