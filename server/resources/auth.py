@@ -42,8 +42,8 @@ class Login(Resource):
         user = User.query.filter_by(email=data.get("email")).first()
         if not user or not check_password_hash(user.password_hash, data.get("password")):
             return {"error": "Invalid credentials"}, 401
-
-        token = create_access_token(identity=user.id)
+        
+        token = create_access_token(identity=str(user.id))
         return {
             "access_token": token,
             "user_id": user.id,
