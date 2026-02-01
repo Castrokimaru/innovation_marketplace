@@ -25,6 +25,7 @@ const ALL_PROJECTS = [
     technologies: ['React', 'Node.js', 'PostgreSQL'],
     views: 1250,
     rating: 4.8,
+    image: 'https://images.unsplash.com/photo-1519494080410-f9aa8f52f274?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 2,
@@ -35,6 +36,7 @@ const ALL_PROJECTS = [
     technologies: ['Next.js', 'Python', 'TensorFlow'],
     views: 980,
     rating: 4.6,
+    image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 3,
@@ -45,6 +47,7 @@ const ALL_PROJECTS = [
     technologies: ['Flutter', 'Firebase', 'Stripe'],
     views: 1540,
     rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 4,
@@ -55,6 +58,7 @@ const ALL_PROJECTS = [
     technologies: ['Python', 'Arduino', 'AWS'],
     views: 850,
     rating: 4.7,
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 5,
