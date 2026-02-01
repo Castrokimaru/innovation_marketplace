@@ -11,7 +11,7 @@ from resources.auth import Signup, Login
 from resources.projects import ProjectList
 from resources.merchandise import MerchandiseList
 from resources.orders import OrderCreate
-from resources.admin import ApproveProject, RejectProject, CategoryCreate, AddContributor
+from resources.admin import CategoryCreate
 
 
 def create_app():
