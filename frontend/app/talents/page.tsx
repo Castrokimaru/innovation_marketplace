@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'
+import { useToast } from '@/components/ui/use-toast'
 import { Mail, Github, Linkedin, ExternalLink } from 'lucide-react'
 
 const TALENTS = [
@@ -93,6 +96,66 @@ const TALENTS = [
 export default function TalentsPage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('All')
+  const { toast } = useToast()
+
+  function HireDialog({ talent }: { talent: typeof TALENTS[number] }) {
+    const [open, setOpen] = useState(false)
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [message, setMessage] = useState('')
+
+    function onSubmit(e?: React.FormEvent) {
+      if (e) e.preventDefault()
+      // If talent has an email, use mailto as a simple delivery mechanism
+      if (!talent.email) {
+        toast({ title: 'No contact email', description: 'This talent has no contact email available.', })
+        return
+      }
+
+      const subject = `Hiring: ${talent.name}`
+      const body = `${message}\n\nFrom: ${name || 'Anonymous'}\nContact: ${email || 'Not provided'}`
+      const mailto = `mailto:${talent.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+
+      // Open user's mail client
+      if (typeof window !== 'undefined') {
+        window.location.href = mailto
+        setOpen(false)
+        toast({ title: 'Opening email client', description: `Composing message to ${talent.name}` })
+      }
+    }
+
+    return (
+      <Dialog open={open} onOpenChange={(v) => setOpen(v)}>
+        <DialogTrigger asChild>
+          <Button className="flex-1 bg-primary hover:bg-primary/90 text-sm">
+            <Mail className="h-3 w-3 mr-1" />
+            Hire
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hire {talent.name}</DialogTitle>
+            <DialogDescription>
+              Send a short message to express interest. This will open your email client to complete the message.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            <Input placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input placeholder="Your contact email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Textarea placeholder="Message (brief)" value={message} onChange={(e) => setMessage(e.target.value)} />
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <DialogClose asChild>
+                <Button variant="outline" type="button">Cancel</Button>
+              </DialogClose>
+              <Button type="submit" onClick={(e) => onSubmit(e as any)}>Send</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   const ROLES = ['All', 'Full Stack Developer', 'Mobile Developer', 'AI/ML Engineer', 'DevOps Engineer', 'Frontend Developer', 'Backend Developer']
 
@@ -175,10 +238,7 @@ export default function TalentsPage() {
                       </div>
 
                       <div className="flex gap-2 pt-4">
-                        <Button className="flex-1 bg-primary hover:bg-primary/90 text-sm">
-                          <Mail className="h-3 w-3 mr-1" />
-                          Hire
-                        </Button>
+                        <HireDialog talent={talent} />
                         <Button variant="outline" size="icon" className="h-9 w-9 bg-transparent">
                           <Github className="h-4 w-4" />
                         </Button>
