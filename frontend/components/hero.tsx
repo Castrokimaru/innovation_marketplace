@@ -33,12 +33,10 @@ export function Hero() {
             </div>
           </div>
           <div className="relative">
-            <div className="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden">
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml?utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2220%22 cy=%2220%22 r=%225%22 fill=%22rgba(255,255,255,0.1)%22/><circle cx=%2280%22 cy=%2235%22 r=%228%22 fill=%22rgba(255,255,255,0.05)%22/><circle cx=%2250%22 cy=%2270%22 r=%226%22 fill=%22rgba(255,255,255,0.1)%22/></svg>')] opacity-50" />
-              <div className="flex items-center justify-center h-full">
-                <div className="text-6xl font-bold text-primary/20">📊</div>
+              <div className="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=600&q=80" alt="Innovation" className="w-full h-full object-cover opacity-90" />
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml?utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2220%22 cy=%2220%22 r=%225%22 fill=%22rgba(255,255,255,0.1)%22/><circle cx=%2280%22 cy=%2235%22 r=%228%22 fill=%22rgba(255,255,255,0.05)%22/><circle cx=%2250%22 cy=%2270%22 r=%226%22 fill=%22rgba(255,255,255,0.1)%22/></svg>')] opacity-50" />
               </div>
-            </div>
           </div>
         </div>
       </div>
