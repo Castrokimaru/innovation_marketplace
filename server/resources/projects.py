@@ -33,7 +33,6 @@ class ProjectList(Resource):
         db.session.add(project)
         db.session.commit()
 
-        # link creator to project
         link = UserProject(
             user_id=user_id,
             project_id=project.id,
