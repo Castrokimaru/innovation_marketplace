@@ -27,7 +27,8 @@ const handler = NextAuth({
           return {
             id: user.id,
             email: user.email,
-            username: user.username
+            username: user.username,
+            accessToken: user.access_token || user.accessToken
           }
         }
 
@@ -42,6 +43,8 @@ const handler = NextAuth({
         token.id = user.id
         token.email = user.email
         token.username = user.username
+        // preserve backend JWT if returned from login
+        token.accessToken = user.accessToken || user.access_token || token.accessToken
       }
       return token
     },
@@ -50,6 +53,8 @@ const handler = NextAuth({
       session.user.id = token.id
       session.user.email = token.email
       session.user.username = token.username
+      // make access token available on the client session
+      session.accessToken = token.accessToken
       return session
     }
   }
