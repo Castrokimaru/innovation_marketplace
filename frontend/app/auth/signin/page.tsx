@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,7 +17,14 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-    const router = useRouter();
+  const router = useRouter();
+  const [registered, setRegistered] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    setRegistered(params.get('registered') === '1')
+  }, [])
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,6 +106,14 @@ export default function SignInPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {registered === true && (
+          <div className="rounded-md bg-accent/10 p-3 text-sm text-accent flex items-center gap-2">
+            <div className="h-5 w-5 rounded-full bg-accent/20 flex items-center justify-center">
+              <span className="text-accent">✓</span>
+            </div>
+            Registration successful — please sign in
+          </div>
+        )}
         {error && (
           <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive flex items-center gap-2">
             <div className="h-5 w-5 rounded-full bg-destructive/20 flex items-center justify-center">

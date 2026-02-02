@@ -30,3 +30,5 @@ venv/
 .ipynb_checkpoints
 .mypy_cache/
 .ruff_cache/
+server/instance/app.db
+

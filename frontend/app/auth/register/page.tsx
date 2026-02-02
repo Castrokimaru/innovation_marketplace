@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { User, Mail, Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react'
+import { signup } from '@/lib/api'
+import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -60,24 +62,28 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      // TODO: Replace with actual registration API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
       if (!formData.name || !formData.email) {
         setError('Please fill in all fields')
         return
       }
 
-      console.log('Registration attempt:', {
-        ...formData,
-        userType,
-        confirmPassword: undefined,
+      // split full name into first + last
+      const parts = formData.name.trim().split(/\s+/)
+      const first_name = parts.shift() || ''
+      const last_name = parts.join(' ') || ''
+
+      const res = await signup({
+        first_name,
+        last_name,
+        email: formData.email,
+        password: formData.password,
+        role: userType,
       })
-      
-      // Simulate successful registration
-      window.location.href = '/auth/verify-email'
-    } catch (err) {
-      setError('Registration failed. Please try again.')
+
+      // success
+      window.location.href = `/auth/signin?registered=1`
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }

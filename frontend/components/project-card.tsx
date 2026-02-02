@@ -11,7 +11,7 @@ interface ProjectCardProps {
   title: string
   description: string
   image?: string
-  technologies: string[]
+  technologies?: string[] | string
   category: string
   author: string
   views?: number
@@ -64,11 +64,16 @@ export function ProjectCard({
           <Badge variant="secondary" className="bg-secondary/10">
             {category}
           </Badge>
-          {technologies.slice(0, 2).map((tech) => (
-            <Badge key={tech} variant="outline" className="text-xs">
-              {tech}
-            </Badge>
-          ))}
+          {(() => {
+            const techs = Array.isArray(technologies)
+              ? technologies
+              : (typeof technologies === 'string' ? technologies.split(',').map(s => s.trim()).filter(Boolean) : [])
+            return techs.slice(0, 2).map((tech) => (
+              <Badge key={tech} variant="outline" className="text-xs">
+                {tech}
+              </Badge>
+            ))
+          })()}
         </div>
 
         <div className="flex items-center justify-between text-xs text-foreground/60">

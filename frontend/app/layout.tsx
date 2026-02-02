@@ -31,6 +31,7 @@ export const metadata: Metadata = {
 }
 
 import { CartProvider } from '@/components/cart/cart-context'
+import AuthProvider from '@/components/auth-provider'
 
 export default function RootLayout({
   children,
@@ -38,11 +39,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`font-sans antialiased`}>
-        <CartProvider>
-          {children}
-        </CartProvider>
+    <html lang="en" data-google-analytics-opt-out="">
+      <body suppressHydrationWarning className={`font-sans antialiased`}>
+        <AuthProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </AuthProvider>
         <AnalyticsClient />
       </body>
     </html>
