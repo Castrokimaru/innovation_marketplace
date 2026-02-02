@@ -38,26 +38,25 @@ const handler = NextAuth({
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.email = user.email
-        token.username = user.username
-        // preserve backend JWT if returned from login
-        token.accessToken = user.accessToken || user.access_token || token.accessToken
-      }
-      return token
-    },
-
-    async session({ session, token }) {
-      session.user.id = token.id
-      session.user.email = token.email
-      session.user.username = token.username
-      // make access token available on the client session
-      session.accessToken = token.accessToken
-      return session
+  async jwt({ token, user }) {
+    if (user) {
+      token.id = user.id
+      token.email = user.email
+      token.username = user.username
+      token.accessToken = user.accessToken
     }
+    return token
+  },
+
+  async session({ session, token }) {
+    session.user.id = token.id
+    session.user.email = token.email
+    session.user.username = token.username
+    session.accessToken = token.accessToken
+    return session
   }
+}
+
 })
 
 export { handler as GET, handler as POST }
