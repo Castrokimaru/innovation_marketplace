@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
@@ -52,7 +52,15 @@ export default function SignInPage() {
       })
 
       if (!res?.error){
-        router.push('/admin')
+        const session = await getSession()
+        const role = session?.user?.role
+        if (role === 'student') {
+          router.push('/student-dashboard')
+        } else if (role === 'recruiter') {
+          router.push('/recruiter-dashboard')
+        } else {
+          router.push('/admin') // fallback for admin or unknown
+        }
       }else{
         setError('We are unable to authenticate you!')
       }
