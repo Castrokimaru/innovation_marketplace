@@ -7,18 +7,51 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ShoppingCart } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useCart } from '@/components/cart/cart-context'
-import { PRODUCTS } from '@/lib/products'
+import { fetchMerchandise, createOrder } from '@/lib/api'
+import { useSession } from 'next-auth/react'
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
+  const { data: session } = useSession()
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    fetchMerchandise()
+      .then((data) => { if (mounted) setProducts(data) })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
 
   const items = cart.map((c) => {
-    const product = PRODUCTS.find((p) => p.id === c.id)
+    const product = products.find((p) => p.id === c.id)
     return { ...c, product }
   }).filter(Boolean)
 
   const subtotal = items.reduce((s, i) => s + (i.product?.price || 0) * i.quantity, 0)
+
+  async function handleCheckout() {
+      if (!session?.user?.email) {
+        window.location.href = '/auth/signin'
+        return
+      }
+  
+      setCheckoutLoading(true)
+      try {
+        const payload = items.map((i) => ({ merchandise_id: i.id, quantity: i.quantity }))
+        const res = await createOrder(payload, session?.user?.email as string)
+      clearCart()
+      alert(`Order ${res.order_id} created. Total: ${res.total}`)
+    } catch (err: any) {
+      alert(err.message || 'Checkout failed')
+    } finally { setCheckoutLoading(false) }
+  }
 
   return (
     <div className="min-h-screen">
@@ -77,7 +110,9 @@ export default function CartPage() {
                       <span className="font-bold">{subtotal.toLocaleString()} KES</span>
                     </div>
                     <div className="mt-4">
-                      <Button className="w-full bg-primary hover:bg-primary/90">Proceed to Checkout</Button>
+                      <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleCheckout} disabled={checkoutLoading}>
+                        {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
+                      </Button>
                     </div>
                     <div className="mt-2">
                       <Button variant="outline" className="w-full" onClick={() => clearCart()}>Clear Cart</Button>
