@@ -54,12 +54,15 @@ const FEATURED_PROJECTS = [
 
 export function FeaturedProjects() {
   return (
-    <section className="py-16 md:py-24 bg-background">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="py-16 md:py-24 bg-background relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-70"></div>
+      <div className="absolute inset-0 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-white/20"></div>
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="space-y-3">
-            <h2 className="text-4xl font-bold">Featured Projects</h2>
-            <p className="text-lg text-foreground/60">
+            <h2 className="text-4xl font-bold text-black">Featured Projects</h2>
+            <p className="text-lg text-gray-800">
               Discover the most innovative student-built solutions on our platform
             </p>
           </div>
