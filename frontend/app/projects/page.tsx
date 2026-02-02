@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { ProjectCard } from '@/components/project-card'
-import { PROJECTS } from '@/lib/projects'
+import { fetchProjects } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -15,8 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-const ALL_PROJECTS = PROJECTS
+
+
 
 const CATEGORIES = ['All', 'HealthTech', 'EdTech', 'FinTech', 'AgriTech', 'SaaS', 'E-Commerce', 'AI/ML', 'Real Estate']
 
@@ -24,13 +25,25 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
   const [sortBy, setSortBy] = useState('newest')
+  const [projects, setProjects] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const filtered = ALL_PROJECTS.filter((project) => {
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    fetchProjects()
+      .then((data) => { if (mounted) setProjects(data) })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  const filtered = projects.filter((project) => {
     const matchesSearch =
-      project.title.toLowerCase().includes(search.toLowerCase()) ||
-      project.description.toLowerCase().includes(search.toLowerCase()) ||
-      project.author.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = category === 'All' || project.category === category
+      project.title?.toLowerCase().includes(search.toLowerCase()) ||
+      project.description?.toLowerCase().includes(search.toLowerCase()) ||
+      (project.submitted_name || '').toLowerCase().includes(search.toLowerCase())
+    const matchesCategory = category === 'All' || (project.categories || []).some((c: any) => c.name === category)
     return matchesSearch && matchesCategory
   })
 
@@ -107,10 +120,23 @@ export default function ProjectsPage() {
         {/* Projects Grid */}
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {sorted.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12">Loading projects...</div>
+            ) : sorted.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {sorted.map((project) => (
-                  <ProjectCard key={project.id} {...project} />
+                {sorted.map((project: any) => (
+                  <ProjectCard
+                    key={project.id}
+                    id={project.id}
+                    title={project.title}
+                    description={project.description}
+                    image={project.image}
+                    technologies={project.technologies || []}
+                    category={(project.categories && project.categories[0] && project.categories[0].name) || 'General'}
+                    author={project.submitted_name || 'Team'}
+                    views={project.views || 0}
+                    rating={project.rating || 4.6}
+                  />
                 ))}
               </div>
             ) : (
