@@ -57,8 +57,8 @@ export default function ShopPage() {
               ) : (
                 products.map((product: any) => (
                   <Card key={product.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300">
-                    <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center text-7xl group-hover:scale-105 transition-transform duration-300">
-                      {product.image}
+                    <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-t-lg" />
                     </div>
                     <div className="p-6 space-y-4">
                       <div className="space-y-2">
