@@ -79,8 +79,9 @@ export default function CartPage() {
   const items = cart
     .map((c) => {
     const product = products.find((p) => p.id === c.id)
-    return { ...c, product }
-  }).filter(Boolean)
+      return product ? { ...c, product } : null
+    })
+    .filter(Boolean) as any[]
 
   const subtotal = items.reduce((s, i) => s + (i.product?.price || 0) * i.quantity, 0)
 
