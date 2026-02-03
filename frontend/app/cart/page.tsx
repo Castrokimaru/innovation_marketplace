@@ -329,7 +329,19 @@ export default function CartPage() {
                     Continue
                   </Button>
                 </div>
+              </Card>
+            )}
 
+            {/* PAYMENT DETAILS STEP */}
+            {checkoutStep === 'payment-details' && (
+              <Card className="max-w-xl mx-auto p-6">
+                <h3 className="font-semibold mb-4">
+                  {selectedPayment === 'mpesa' && 'M-Pesa Payment'}
+                  {selectedPayment === 'card' && 'Card Payment'}
+                  {selectedPayment === 'cash' && 'Cash on Delivery'}
+                </h3>
+
+                {selectedPayment === 'mpesa' && (
                 <div className="space-y-4">
                   <Card className="p-4">
                     <div className="flex justify-between">
