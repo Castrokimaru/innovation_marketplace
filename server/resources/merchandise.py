@@ -34,3 +34,23 @@ class MerchandiseList(Resource):
         db.session.commit()
 
         return {"message": "Merchandise added"}, 201
+
+class MerchandiseItem(Resource):
+    @jwt_required()
+    def patch(self, id):
+        item = Merchandise.query.get_or_404(id)
+        data = request.get_json()
+
+        if "name" in data:
+            item.name = data["name"]
+        if "description" in data:
+            item.description = data["description"]
+        if "price" in data:
+            item.price = data["price"]
+        if "stock" in data:
+            item.stock = data["stock"]
+        if "image_url" in data:
+            item.image_url = data["image_url"]
+
+        db.session.commit()
+        return {"message": "Merchandise updated"}, 200
