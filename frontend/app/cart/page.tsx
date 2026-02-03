@@ -182,9 +182,112 @@ export default function CartPage() {
               <div className="grid gap-8 md:grid-cols-3">
                 <div className="md:col-span-2 space-y-4">
                   {items.map((item) => (
-                    <Card key={item.id} className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="text-5xl">{item.product?.image}</div>
+                        <Card
+                          key={item.id}
+                          className="p-4 flex gap-4 items-center"
+                        >
+                          <img
+                            src={item.product.image_url}
+                            alt={item.product.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <div className="flex-1">
+                            <div className="font-medium">
+                              {item.product.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.product.price.toLocaleString()} KES
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity - 1)
+                              }
+                            >
+                              -
+                            </Button>
+                            <Input
+                              className="w-14 text-center"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                updateQuantity(
+                                  item.id,
+                                  Number(e.target.value) || 1
+                                )
+                              }
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity + 1)
+                              }
+                            >
+                              +
+                            </Button>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            Remove
+                          </Button>
+                        </Card>
+                      ))}
+                    </div>
+
+                    <Card className="p-4 h-fit">
+                      <div className="flex justify-between mb-4">
+                        <span>Subtotal</span>
+                        <span className="font-bold">
+                          {subtotal.toLocaleString()} KES
+                        </span>
+                      </div>
+                      <Button className="w-full" onClick={handleCheckout}>
+                        Proceed to Checkout
+                      </Button>
+                    </Card>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* PAYMENT STEP */}
+            {checkoutStep === 'payment' && (
+              <Card className="max-w-2xl mx-auto p-6">
+                <h3 className="text-lg font-semibold mb-6">Choose Payment Method</h3>
+                <RadioGroup
+                  value={selectedPayment}
+                  onValueChange={setSelectedPayment}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50">
+                    <RadioGroupItem value="mpesa" id="mpesa" />
+                    <Label
+                      htmlFor="mpesa"
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <Smartphone className="h-5 w-5 text-green-600" />
+                      <div>
+                        <div className="font-medium">M-Pesa</div>
+                        <div className="text-sm text-muted-foreground">
+                          Pay with your mobile money
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label
+                      htmlFor="card"
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <CreditCard className="h-5 w-5 text-blue-600" />
                         <div>
                           <div className="font-medium">{item.product?.name}</div>
                           <div className="text-sm text-foreground/60">{item.product?.color}</div>
