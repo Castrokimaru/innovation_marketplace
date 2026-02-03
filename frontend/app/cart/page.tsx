@@ -6,7 +6,16 @@ import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ShoppingCart, Loader2 } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  ShoppingCart,
+  Loader2,
+  CreditCard,
+  Smartphone,
+  Truck,
+  CheckCircle,
+} from 'lucide-react'
 import { useCart } from '@/components/cart/cart-context'
 import { fetchMerchandise, createOrder } from '@/lib/api'
 import { useSession } from 'next-auth/react'
