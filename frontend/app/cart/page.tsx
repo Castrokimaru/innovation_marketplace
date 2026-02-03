@@ -376,8 +376,35 @@ export default function CartPage() {
                         }
                       />
                     </div>
-                    <div className="mt-2">
-                      <Button variant="outline" className="w-full" onClick={() => clearCart()}>Clear Cart</Button>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="expiry">Expiry Date</Label>
+                        <Input
+                          id="expiry"
+                          placeholder="MM/YY"
+                          value={paymentDetails.expiry}
+                          onChange={(e) =>
+                            setPaymentDetails({
+                              ...paymentDetails,
+                              expiry: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="cvv">CVV</Label>
+                        <Input
+                          id="cvv"
+                          placeholder="123"
+                          value={paymentDetails.cvv}
+                          onChange={(e) =>
+                            setPaymentDetails({
+                              ...paymentDetails,
+                              cvv: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
                     </div>
                   </Card>
                 </div>
