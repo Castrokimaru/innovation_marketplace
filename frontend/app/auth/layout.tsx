@@ -2,11 +2,26 @@
 
 import { ReactNode } from 'react'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+        {/* Back Button */}
+        <div className="absolute top-4 left-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-block">
