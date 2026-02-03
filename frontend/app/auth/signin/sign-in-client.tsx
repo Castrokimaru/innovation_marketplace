@@ -50,7 +50,6 @@ export default function SignInClient() {
       const session = await getSession()
       const role = session?.user?.role
 
-      // ✅ important for App Router session/UI freshness
       router.refresh()
 
       if (role === 'student') {
