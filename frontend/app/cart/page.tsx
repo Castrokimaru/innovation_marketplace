@@ -138,10 +138,25 @@ export default function CartPage() {
       <Navbar />
 
       <main>
-        <section className="bg-gradient-to-b from-primary/5 to-background py-12 border-b border-border">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-bold mb-2">Your Cart</h1>
-            <p className="text-lg text-foreground/60">Review items in your cart before checkout</p>
+        {/* HEADER */}
+        <section className="bg-gradient-to-b from-primary/5 to-background py-12 border-b">
+          <div className="max-w-7xl mx-auto px-4">
+            <h1 className="text-4xl font-bold mb-2">
+              {checkoutStep === 'cart' && 'Your Cart'}
+              {checkoutStep === 'payment' && 'Select Payment Method'}
+              {checkoutStep === 'payment-details' && 'Enter Payment Details'}
+              {checkoutStep === 'confirmation' && 'Order Confirmed'}
+            </h1>
+            <p className="text-lg text-foreground/60">
+              {checkoutStep === 'cart' &&
+                'Review items in your cart before checkout'}
+              {checkoutStep === 'payment' &&
+                'Choose how you want to pay for your order'}
+              {checkoutStep === 'payment-details' &&
+                'Enter your payment information to complete the order'}
+              {checkoutStep === 'confirmation' &&
+                'Your order has been placed successfully'}
+            </p>
           </div>
         </section>
 
