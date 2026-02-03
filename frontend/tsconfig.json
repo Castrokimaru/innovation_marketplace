@@ -1,17 +1,8 @@
 {
   "compilerOptions": {
-<<<<<<< Updated upstream
-    "lib": ["dom", "dom.iterable", "esnext"],
-=======
-    "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
->>>>>>> Stashed changes
-    "allowJs": true,
     "target": "ES6",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -24,31 +15,16 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-<<<<<<< Updated upstream
-      "@/*": ["./*"]
-=======
-      "@/*": [
-        "./src/*"
-      ]
->>>>>>> Stashed changes
+      "@/*": ["./src/*"]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-<<<<<<< Updated upstream
     "types/**/*.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
-=======
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
->>>>>>> Stashed changes
 }
