@@ -69,7 +69,6 @@ class UpdateProfile(Resource):
         if not user:
             return {"error": "User not found"}, 404
 
-        # Optional updates
         if "first_name" in data:
             user.first_name = data["first_name"]
 
