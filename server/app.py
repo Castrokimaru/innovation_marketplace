@@ -7,7 +7,7 @@ from flask_jwt_extended import JWTManager
 from models import db
 
 
-from resources.auth import Signup, Login
+from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList
 from resources.merchandise import MerchandiseList
 from resources.orders import OrderCreate
@@ -31,6 +31,7 @@ def create_app():
 
     api.add_resource(Signup, "/signup")
     api.add_resource(Login, "/login")
+    api.add_resource(UpdateProfile, "/profile")
 
     api.add_resource(ProjectList, "/projects")
     api.add_resource(MerchandiseList, "/merchandise")
