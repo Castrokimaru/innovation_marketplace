@@ -11,7 +11,7 @@ export function Navbar() {
   const { totalItems } = useCart()
   const { data: session } = useSession()
  
-
+ //cart prevention for unauthenticated users
   const handleCartClick = (e:React.MouseEvent) => {
     if (!session) {
       e.preventDefault()
