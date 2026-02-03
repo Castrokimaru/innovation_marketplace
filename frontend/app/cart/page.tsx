@@ -64,7 +64,6 @@ export default function CartPage() {
     }
   }, [])
 
-  // Show loading state while checking authentication
   if (status === 'loading') {
     return (
       <div className="min-h-screen">
