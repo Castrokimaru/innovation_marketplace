@@ -83,7 +83,10 @@ export default function CartPage() {
     })
     .filter(Boolean) as any[]
 
-  const subtotal = items.reduce((s, i) => s + (i.product?.price || 0) * i.quantity, 0)
+  const subtotal = items.reduce(
+    (sum, i) => sum + (i.product.price || 0) * i.quantity,
+    0
+  )
 
   async function handleCheckout() {
     if (!session?.user?.email) {
