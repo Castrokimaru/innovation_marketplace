@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Menu, Search, ShoppingCart } from 'lucide-react'
 import { useCart } from '@/components/cart/cart-context'
 import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 
 export function Navbar() {
   const { totalItems } = useCart()
