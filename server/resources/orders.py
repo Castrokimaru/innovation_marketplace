@@ -48,6 +48,7 @@ class OrderCreate(Resource):
             "total": float(total)
         }, 201
 
+
 class OrderDelete(Resource):
     @jwt_required()
     def delete(self, order_id):
