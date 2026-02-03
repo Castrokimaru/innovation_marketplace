@@ -311,8 +311,23 @@ export default function CartPage() {
                           Pay when you receive your order
                         </div>
                       </div>
-                    </Card>
-                  ))}
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                <div className="flex gap-4 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCheckoutStep('cart')}
+                  >
+                    Back to Cart
+                  </Button>
+                  <Button
+                    onClick={handlePaymentSubmit}
+                    disabled={!selectedPayment}
+                  >
+                    Continue
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
