@@ -30,15 +30,71 @@ export default function CartPage() {
   }, [status, router, searchParams])
 
   // Fetch products for cart items
-useEffect(() => {
-  let mounted = true
-  setLoading(true)
-  fetchMerchandise()
-    .then((data) => { if (mounted) setProducts(data) })
-    .catch(() => {})
-    .finally(() => { if (mounted) setLoading(false) })
-  return () => { mounted = false }
-}, [])
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    fetchMerchandise()
+      .then((data) => { if (mounted) setProducts(data) })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  // Show loading state while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="mt-4 text-foreground/60">Checking authentication...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Redirect to sign-in if not authenticated (backup check)
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="mt-4 text-foreground/60">Redirecting to sign in...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  const items = cart.map((c) => {
+    const product = products.find((p) => p.id === c.id)
+    return { ...c, product }
+  }).filter(Boolean)
+
+  const subtotal = items.reduce((s, i) => s + (i.product?.price || 0) * i.quantity, 0)
+
+  async function handleCheckout() {
+    if (!session?.user?.email) {
+      window.location.href = '/auth/signin'
+      return
+    }
+
+    setCheckoutLoading(true)
+    try {
+      const payload = items.map((i) => ({ merchandise_id: i.id, quantity: i.quantity }))
+      const res = await createOrder(payload, session?.user?.email as string)
+      clearCart()
+      alert(`Order ${res.order_id} created. Total: ${res.total}`)
+    } catch (err: any) {
+      alert(err.message || 'Checkout failed')
+    } finally { setCheckoutLoading(false) }
+  }
 
   return (
     <div className="min-h-screen">
