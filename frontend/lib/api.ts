@@ -12,6 +12,28 @@ export async function fetchMerchandise() {
   return res.json()
 }
 
+export async function createMerchandise(payload: {
+  name: string
+  description: string
+  price: number
+  stock: number
+  image_url: string
+}, token?: string) {
+  const res = await fetch(`${BASE}/merchandise`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || 'Failed to create merchandise')
+  }
+  return res.json()
+}
+
 export async function fetchProjects(token?: string) {
   const res = await fetch(`${BASE}/projects`, {
     headers: {
