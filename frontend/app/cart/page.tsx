@@ -90,7 +90,28 @@ export default function CartPage() {
 
   async function handleCheckout() {
     if (!session?.user?.email) {
-      window.location.href = '/auth/signin'
+      router.push('/auth/signin')
+      return
+    }
+    setCheckoutStep('payment')
+  }
+
+  async function handlePaymentSubmit() {
+    if (!selectedPayment) {
+      alert('Please select a payment method')
+      return
+    }
+    setCheckoutStep('payment-details')
+  }
+
+  async function handlePaymentDetailsSubmit() {
+    // Basic validation
+    if (selectedPayment === 'mpesa' && !paymentDetails.phone) {
+      alert('Please enter your M-Pesa phone number')
+      return
+    }
+    if (selectedPayment === 'card' && (!paymentDetails.cardNumber || !paymentDetails.expiry || !paymentDetails.cvv)) {
+      alert('Please fill in all card details')
       return
     }
 
