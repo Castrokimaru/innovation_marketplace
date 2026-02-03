@@ -56,10 +56,12 @@ export default function CartPage() {
     setLoading(true)
 
     fetchMerchandise()
-      .then((data) => { if (mounted) setProducts(data) })
-      .catch(() => {})
-      .finally(() => { if (mounted) setLoading(false) })
-    return () => { mounted = false }
+      .then((data) => mounted && setProducts(data))
+      .finally(() => mounted && setLoading(false))
+
+    return () => {
+      mounted = false
+    }
   }, [])
 
   // Show loading state while checking authentication
