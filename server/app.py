@@ -9,7 +9,7 @@ from models import db
 
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList
-from resources.merchandise import MerchandiseList
+from resources.merchandise import MerchandiseList, MerchandiseItem
 from resources.orders import OrderCreate, OrderDelete
 from resources.admin import CategoryCreate, ApproveProject, RejectProject
 from resources.recruiters import BrowseProjects
@@ -36,6 +36,7 @@ def create_app():
     api.add_resource(ProjectList, "/projects")
     
     api.add_resource(MerchandiseList, "/merchandise")
+    api.add_resource(MerchandiseItem, "/merchandise/<int:id>")
 
     api.add_resource(OrderCreate, "/orders")
     api.add_resource(OrderDelete, "/orders/<int:order_id>")
