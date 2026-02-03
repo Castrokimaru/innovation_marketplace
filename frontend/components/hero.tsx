@@ -2,9 +2,27 @@
 
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Sparkles } from 'lucide-react'
-import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export function Hero() {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleExploreProjects = () => {
+    if (!session && mounted) {
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`)
+    } else {
+      router.push('/projects')
+    }
+  }
+
   return (
     <section className="relative overflow-hidden py-20 md:py-32 bg-[url('https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center bg-no-repeat">
       <div className="absolute inset-0 bg-black/40"></div> {/* Overlay for better text readability */}
@@ -22,12 +40,14 @@ export function Hero() {
               Showcase your capstone projects, connect with recruiters, investors, and launch your startup journey. The Moringa Innovation Marketplace is where student ideas become market realities.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/projects" className="flex">
-                <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90">
-                  Explore Projects
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90"
+                onClick={handleExploreProjects}
+              >
+                Explore Projects
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
               <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-black">
                 Learn More
               </Button>
