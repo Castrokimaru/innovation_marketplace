@@ -10,6 +10,11 @@ import { useState, useEffect } from 'react'
 export function Navbar() {
   const { totalItems } = useCart()
   const { data: session } = useSession()
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
  
  //cart prevention for unauthenticated users
   const handleCartClick = (e:React.MouseEvent) => {
