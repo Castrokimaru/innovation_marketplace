@@ -434,7 +434,23 @@ export default function CartPage() {
                     Pay Now
                   </Button>
                 </div>
-              </div>
+              </Card>
+            )}
+
+            {/* CONFIRMATION STEP */}
+            {checkoutStep === 'confirmation' && orderDetails && (
+              <Card className="max-w-xl mx-auto p-6 text-center">
+                <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-2">
+                  Order Confirmed!
+                </h3>
+                <p className="text-muted-foreground">
+                  Order ID: #{orderDetails.order_id}
+                </p>
+                <Button className="mt-6" onClick={() => router.push('/shop')}>
+                  Continue Shopping
+                </Button>
+              </Card>
             )}
           </div>
         </section>
