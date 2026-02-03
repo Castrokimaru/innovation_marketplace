@@ -22,6 +22,7 @@ export default function CartPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false)
 
   // Redirect unauthenticated users to sign-in with callback URL
+  
   useEffect(() => {
     if (status === 'unauthenticated') {
       const callbackUrl = searchParams.get('callbackUrl') || '/cart'
