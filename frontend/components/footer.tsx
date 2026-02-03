@@ -27,7 +27,6 @@ export function Footer() {
                 <Link href="/talents" className="text-foreground/60 hover:text-foreground transition">
                   Find Talents
                 </Link>
-                
               </li>
               <li>
                 <Link href="/shop" className="text-foreground/60 hover:text-foreground transition">
