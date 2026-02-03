@@ -125,7 +125,7 @@ export default function CartPage() {
       const res = await createOrder(payload, session?.accessToken)
       setOrderDetails(res)
       clearCart()
-      alert(`Order ${res.order_id} created. Total: ${res.total}`)
+      setCheckoutStep('confirmation')
     } catch (err: any) {
       alert(err.message || 'Checkout failed')
     } finally { setCheckoutLoading(false) }
