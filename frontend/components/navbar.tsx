@@ -5,9 +5,21 @@ import { Button } from '@/components/ui/button'
 // import { Input } from '@/components/ui/input'
 import { Menu, Search, ShoppingCart } from 'lucide-react'
 import { useCart } from '@/components/cart/cart-context'
+import { useSession } from 'next-auth/react'
 
 export function Navbar() {
   const { totalItems } = useCart()
+  const { data: session } = useSession()
+ 
+
+  const handleCartClick = (e:React.MouseEvent) => {
+    if (!session) {
+      e.preventDefault()
+      alert('Please sign in to view your cart.')
+      e.preventDefault()
+      window.location.href = '/auth/signin?callbackUrl=/cart'
+    }
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
