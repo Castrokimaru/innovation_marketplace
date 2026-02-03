@@ -1,6 +1,5 @@
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
 
-//Helpers 
 function authHeaders(token?: string) {
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -13,10 +12,6 @@ export async function fetchMerchandise() {
   return res.json()
 }
 
-/**
- * If your backend does NOT require auth for GET /projects, token is optional.
- * If it DOES require auth, pass token from session.accessToken.
- */
 export async function fetchProjects(token?: string) {
   const res = await fetch(`${BASE}/projects`, {
     headers: {
@@ -28,10 +23,6 @@ export async function fetchProjects(token?: string) {
   return res.json()
 }
 
-/**
- * Works with your current backend response shape:
- * filters projects where team_members includes current user id.
- */
 export async function fetchMyProjectsFromAllProjects(userId: number, token?: string) {
   const projects = await fetchProjects(token)
 
@@ -99,7 +90,7 @@ export async function signup(payload: {
 }
 
 export async function fetchApprovedProjects() {
-  const res = await fetch(`${BASE}/browse-projects`, { cache: 'no-store' })
+  const res = await fetch(`${BASE}/recruiters/projects`, { cache: 'no-store' })
   if (!res.ok) throw new Error('Failed to fetch approved projects')
   return res.json()
 }
