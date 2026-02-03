@@ -64,8 +64,7 @@ export default function RecruiterDashboard() {
   const [tech, setTech] = useState('All')
 
   const [signingOut, setSigningOut] = useState(false)
-
-  // ✅ Auth guard
+ 
   useEffect(() => {
     if (status === 'loading') return
     if (!session || session.user.role !== 'recruiter') {
