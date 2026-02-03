@@ -310,7 +310,6 @@ export default function CartPage() {
                         <div className="text-sm text-muted-foreground">
                           Pay when you receive your order
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => removeFromCart(item.id)}>Remove</Button>
                       </div>
                     </Card>
                   ))}
