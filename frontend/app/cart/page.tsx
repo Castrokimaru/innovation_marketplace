@@ -54,6 +54,7 @@ export default function CartPage() {
   useEffect(() => {
     let mounted = true
     setLoading(true)
+
     fetchMerchandise()
       .then((data) => { if (mounted) setProducts(data) })
       .catch(() => {})
