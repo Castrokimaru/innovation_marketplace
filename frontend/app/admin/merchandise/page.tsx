@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import {
   Search,
   Plus,
@@ -13,93 +16,60 @@ import {
   ShoppingBag,
   DollarSign,
 } from 'lucide-react'
-
-const merchandise = [
-  {
-    id: 1,
-    name: 'Moringa T-Shirt',
-    sku: 'TSHIRT-001',
-    category: 'Apparel',
-    price: 15.99,
-    stock: 145,
-    sold: 342,
-    revenue: 5466.58,
-    status: 'active',
-  },
-  {
-    id: 2,
-    name: 'Innovation Hoodie',
-    sku: 'HOODIE-001',
-    category: 'Apparel',
-    price: 39.99,
-    stock: 67,
-    sold: 189,
-    revenue: 7558.11,
-    status: 'active',
-  },
-  {
-    id: 3,
-    name: 'Sticker Pack',
-    sku: 'STICKER-001',
-    category: 'Accessories',
-    price: 4.99,
-    stock: 523,
-    sold: 1204,
-    revenue: 6005.96,
-    status: 'active',
-  },
-  {
-    id: 4,
-    name: 'Water Bottle',
-    sku: 'BOTTLE-001',
-    category: 'Drinkware',
-    price: 24.99,
-    stock: 89,
-    sold: 256,
-    revenue: 6397.44,
-    status: 'active',
-  },
-  {
-    id: 5,
-    name: 'Baseball Cap',
-    sku: 'CAP-001',
-    category: 'Headwear',
-    price: 22.99,
-    stock: 0,
-    sold: 178,
-    revenue: 4091.22,
-    status: 'inactive',
-  },
-  {
-    id: 6,
-    name: 'Notebook',
-    sku: 'NOTE-001',
-    category: 'Stationery',
-    price: 8.99,
-    stock: 234,
-    sold: 567,
-    revenue: 5096.33,
-    status: 'active',
-  },
-]
-
-const getStatusColor = (status: string) => {
-  return status === 'active'
-    ? 'bg-green-500/10 text-green-700 dark:text-green-400'
-    : 'bg-red-500/10 text-red-700 dark:text-red-400'
-}
+import { fetchMerchandise, createMerchandise } from '@/lib/api'
+import { useSession } from 'next-auth/react'
 
 export default function MerchandiseManagement() {
+  const { data: session } = useSession()
+  const [merchandise, setMerchandise] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    image_url: ''
+  })
+
+  useEffect(() => {
+    fetchMerchandise()
+      .then(setMerchandise)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleAddProduct = async () => {
+    if (!session?.accessToken) {
+      alert('Please log in to add products')
+      return
+    }
+    try {
+      await createMerchandise({
+        name: newProduct.name,
+        description: newProduct.description,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        image_url: newProduct.image_url
+      }, session.accessToken)
+      setNewProduct({ name: '', description: '', price: '', stock: '', image_url: '' })
+      setShowAddForm(false)
+      // Refresh the list
+      const updated = await fetchMerchandise()
+      setMerchandise(updated)
+    } catch (error) {
+      alert('Failed to add product: ' + (error as Error).message)
+    }
+  }
 
   const filteredMerchandise = merchandise.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    item.id.toString().includes(searchTerm)
   )
 
-  const totalRevenue = merchandise.reduce((sum, item) => sum + item.revenue, 0)
-  const totalSold = merchandise.reduce((sum, item) => sum + item.sold, 0)
   const totalStock = merchandise.reduce((sum, item) => sum + item.stock, 0)
+  const totalProducts = merchandise.length
 
   return (
     <div className="space-y-6">
@@ -108,7 +78,7 @@ export default function MerchandiseManagement() {
           <h1 className="text-3xl font-bold text-foreground">Merchandise</h1>
           <p className="mt-2 text-muted-foreground">Manage products and inventory</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 gap-2">
+        <Button onClick={() => setShowAddForm(true)} className="bg-primary hover:bg-primary/90 gap-2">
           <Plus className="h-4 w-4" />
           Add Product
         </Button>
@@ -119,22 +89,8 @@ export default function MerchandiseManagement() {
         <Card className="p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-              <p className="mt-2 text-3xl font-bold text-foreground">
-                ${totalRevenue.toFixed(2)}
-              </p>
-            </div>
-            <div className="rounded-lg bg-green-500/10 p-3">
-              <DollarSign className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Items Sold</p>
-              <p className="mt-2 text-3xl font-bold text-foreground">{totalSold}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Products</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{totalProducts}</p>
             </div>
             <div className="rounded-lg bg-blue-500/10 p-3">
               <ShoppingBag className="h-6 w-6 text-blue-600" />
@@ -153,6 +109,20 @@ export default function MerchandiseManagement() {
             </div>
           </div>
         </Card>
+
+        <Card className="p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Average Price</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">
+                {merchandise.length > 0 ? (merchandise.reduce((sum, item) => sum + item.price, 0) / merchandise.length).toLocaleString() : '0'} KES
+              </p>
+            </div>
+            <div className="rounded-lg bg-green-500/10 p-3">
+              <DollarSign className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Search */}
@@ -160,7 +130,7 @@ export default function MerchandiseManagement() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name or SKU..."
+            placeholder="Search by name or ID..."
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -174,65 +144,126 @@ export default function MerchandiseManagement() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
+                <th className="px-6 py-4 text-left font-semibold text-foreground">ID</th>
                 <th className="px-6 py-4 text-left font-semibold text-foreground">Product</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">SKU</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Category</th>
                 <th className="px-6 py-4 text-right font-semibold text-foreground">Price</th>
                 <th className="px-6 py-4 text-center font-semibold text-foreground">Stock</th>
-                <th className="px-6 py-4 text-center font-semibold text-foreground">Sold</th>
-                <th className="px-6 py-4 text-right font-semibold text-foreground">Revenue</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
+                <th className="px-6 py-4 text-left font-semibold text-foreground">Image</th>
                 <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredMerchandise.map((item) => (
-                <tr key={item.id} className="border-b border-border/50 hover:bg-muted/30">
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-foreground">{item.name}</p>
-                  </td>
-                  <td className="px-6 py-4 text-foreground/70 font-mono text-xs">{item.sku}</td>
-                  <td className="px-6 py-4 text-foreground/70">{item.category}</td>
-                  <td className="px-6 py-4 text-right font-medium text-foreground">
-                    ${item.price.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span
-                      className={cn(
-                        'inline-block px-2.5 py-0.5 rounded text-xs font-medium',
-                        item.stock === 0
-                          ? 'bg-red-500/10 text-red-700 dark:text-red-400'
-                          : 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
-                      )}
-                    >
-                      {item.stock}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center font-medium text-foreground">{item.sold}</td>
-                  <td className="px-6 py-4 text-right font-medium text-foreground">
-                    ${item.revenue.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(item.status))}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-2">
-                      <Button variant="ghost" size="sm" title="Edit">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" title="Delete" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-4 text-center">Loading...</td>
                 </tr>
-              ))}
+              ) : (
+                filteredMerchandise.map((item) => (
+                  <tr key={item.id} className="border-b border-border/50 hover:bg-muted/30">
+                    <td className="px-6 py-4 text-foreground/70 font-mono text-xs">{item.id}</td>
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-foreground">{item.name}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right font-medium text-foreground">
+                      {item.price.toLocaleString()} KES
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded text-xs font-medium ${
+                          item.stock === 0
+                            ? 'bg-red-500/10 text-red-700 dark:text-red-400'
+                            : 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
+                        }`}
+                      >
+                        {item.stock}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <img src={item.image_url} alt={item.name} className="w-12 h-12 object-cover rounded" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center gap-2">
+                        <Button variant="ghost" size="sm" title="Edit">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" title="Delete" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </Card>
+
+      {/* Add Product Dialog */}
+      <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Product Name</Label>
+              <Input
+                id="name"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                placeholder="Enter product name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={newProduct.description}
+                onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                placeholder="Enter product description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="price">Price</Label>
+              <Input
+                id="price"
+                type="number"
+                value={newProduct.price}
+                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                placeholder="Enter price"
+              />
+            </div>
+            <div>
+              <Label htmlFor="stock">Stock</Label>
+              <Input
+                id="stock"
+                type="number"
+                value={newProduct.stock}
+                onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                placeholder="Enter stock quantity"
+              />
+            </div>
+            <div>
+              <Label htmlFor="image_url">Image URL</Label>
+              <Input
+                id="image_url"
+                value={newProduct.image_url}
+                onChange={(e) => setNewProduct({ ...newProduct, image_url: e.target.value })}
+                placeholder="Enter image URL"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowAddForm(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddProduct}>
+                Add Product
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
