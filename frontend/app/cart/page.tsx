@@ -289,9 +289,9 @@ export default function CartPage() {
                     >
                       <CreditCard className="h-5 w-5 text-blue-600" />
                         <div>
-                          <div className="font-medium">{item.product?.name}</div>
-                          <div className="text-sm text-foreground/60">{item.product?.color}</div>
-                          <div className="text-sm text-foreground/60 mt-1">{(item.product?.price || 0).toLocaleString()} KES</div>
+                        <div className="font-medium">Credit/Debit Card</div>
+                        <div className="text-sm text-muted-foreground">
+                          Visa, Mastercard, etc.
                         </div>
                       </div>
 
