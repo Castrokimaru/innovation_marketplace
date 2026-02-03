@@ -69,7 +69,7 @@ export default function ShopPage() {
                         <div className="space-y-1">
                           <div className="text-2xl font-bold text-primary">{(product.price || 0).toLocaleString()} KES</div>
                         </div>
-                        {product.inStock ? (
+                        {product.stock > 0 ? (
                           <Badge className="bg-green-500/20 text-green-700 dark:text-green-400">In Stock</Badge>
                         ) : (
                           <Badge variant="outline">Out of Stock</Badge>
