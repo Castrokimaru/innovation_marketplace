@@ -406,7 +406,33 @@ export default function CartPage() {
                         />
                       </div>
                     </div>
-                  </Card>
+                  </div>
+                )}
+
+                {selectedPayment === 'cash' && (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">
+                      You will pay in cash when your order is delivered.
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-4 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCheckoutStep('payment')}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handlePaymentDetailsSubmit}
+                    disabled={checkoutLoading}
+                  >
+                    {checkoutLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    Pay Now
+                  </Button>
                 </div>
               </div>
             )}
