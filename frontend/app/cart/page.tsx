@@ -162,7 +162,11 @@ export default function CartPage() {
 
         {/* BODY */}
         <section className="py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4">
+
+            {/* CART STEP */}
+            {checkoutStep === 'cart' && (
+              <>
             {items.length === 0 ? (
               <div className="text-center py-24">
                 <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground" />
