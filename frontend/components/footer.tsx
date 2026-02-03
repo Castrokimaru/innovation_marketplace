@@ -2,8 +2,19 @@
 
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
-
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+//functiom to handle authenticated clicks
 export function Footer() {
+  const { data: session } = useSession()
+  const router = useRouter()
+
+  const handleAuthenticatedClick = (href: string) => (e: React.MouseEvent) => {
+    if (!session) {
+      e.preventDefault()
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(href)}`)
+    }
+  }
   return (
     <footer className="bg-foreground/5 border-t border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -19,17 +30,19 @@ export function Footer() {
             <h4 className="font-semibold">Platform</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/projects" className="text-foreground/60 hover:text-foreground transition">
+                 <Link href={session ? "/projects" : "#"} onClick={handleAuthenticatedClick("/projects")} className="text-foreground/60 hover:text-foreground transition">
                   Explore Projects
                 </Link>
               </li>
               <li>
-                <Link href="/talents" className="text-foreground/60 hover:text-foreground transition">
+                <Link href={session ? "/talents" : "#"} onClick={handleAuthenticatedClick("/talents")} className="text-foreground/60 hover:text-foreground transition">
                   Find Talents
                 </Link>
+                
               </li>
               <li>
-                <Link href="/shop" className="text-foreground/60 hover:text-foreground transition">
+                 <Link href={session ? "/shop" : "#"} onClick={handleAuthenticatedClick("/shop")} className="text-foreground/60 hover:text-foreground transition">
+
                   Shop Merch
                 </Link>
               </li>
