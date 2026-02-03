@@ -80,7 +80,7 @@ export default function ShopPage() {
                         <Button
                           className="flex-1 bg-primary hover:bg-primary/90"
                           onClick={() => addToCart(product.id)}
-                          disabled={!product.inStock}
+                          disabled={product.stock <= 0}
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
                           Add to Cart
