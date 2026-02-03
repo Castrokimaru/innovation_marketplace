@@ -30,8 +30,19 @@ export default function CartPage() {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutStep, setCheckoutStep] = useState<
+    'cart' | 'payment' | 'payment-details' | 'confirmation'
+  >('cart')
+  const [selectedPayment, setSelectedPayment] = useState('')
+  const [paymentDetails, setPaymentDetails] = useState({
+    phone: '',
+    cardNumber: '',
+    expiry: '',
+    cvv: '',
+  })
+  const [orderDetails, setOrderDetails] = useState<any>(null)
 
-  // Redirect unauthenticated users to sign-in with callback URL
+  /* Redirect unauthenticated users */
   useEffect(() => {
     if (status === 'unauthenticated') {
       const callbackUrl = searchParams.get('callbackUrl') || '/cart'
