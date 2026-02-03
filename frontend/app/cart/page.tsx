@@ -78,7 +78,7 @@ export default function CartPage() {
 
   const items = cart
     .map((c) => {
-    const product = products.find((p) => p.id === c.id)
+      const product = products.find((p) => p.id === c.id)
       return product ? { ...c, product } : null
     })
     .filter(Boolean) as any[]
@@ -167,9 +167,9 @@ export default function CartPage() {
             {/* CART STEP */}
             {checkoutStep === 'cart' && (
               <>
-            {items.length === 0 ? (
-              <div className="text-center py-24">
-                <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground" />
+                {items.length === 0 ? (
+                  <div className="text-center py-24">
+                    <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h2 className="text-2xl font-bold mt-4">Your cart is empty</h2>
                 <p className="text-foreground/60 mt-2">Add some great merchandise from the shop</p>
                 <div className="mt-6">
@@ -177,11 +177,11 @@ export default function CartPage() {
                     <Button>Browse Store</Button>
                   </a>
                 </div>
-              </div>
-            ) : (
-              <div className="grid gap-8 md:grid-cols-3">
-                <div className="md:col-span-2 space-y-4">
-                  {items.map((item) => (
+                  </div>
+                ) : (
+                  <div className="grid gap-8 md:grid-cols-3">
+                    <div className="md:col-span-2 space-y-4">
+                      {items.map((item) => (
                         <Card
                           key={item.id}
                           className="p-4 flex gap-4 items-center"
@@ -288,7 +288,7 @@ export default function CartPage() {
                       className="flex items-center gap-3 cursor-pointer"
                     >
                       <CreditCard className="h-5 w-5 text-blue-600" />
-                        <div>
+                      <div>
                         <div className="font-medium">Credit/Debit Card</div>
                         <div className="text-sm text-muted-foreground">
                           Visa, Mastercard, etc.
@@ -342,7 +342,7 @@ export default function CartPage() {
                 </h3>
 
                 {selectedPayment === 'mpesa' && (
-                <div className="space-y-4">
+                  <div className="space-y-4">
                     <div>
                       <Label htmlFor="phone">M-Pesa Phone Number</Label>
                       <Input
