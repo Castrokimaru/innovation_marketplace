@@ -76,12 +76,6 @@ export default function ShopPage() {
                         )}
                       </div>
 
-                      <div className="space-y-2">
-                        {product.sizes && product.sizes.length > 1 && (
-                          <div className="text-xs font-medium">Sizes: {product.sizes.join(', ')}</div>
-                        )}
-                      </div>
-
                       <div className="flex gap-2 pt-2 items-center">
                         <Button
                           className="flex-1 bg-primary hover:bg-primary/90"
