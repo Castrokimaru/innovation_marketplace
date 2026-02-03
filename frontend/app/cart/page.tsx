@@ -1,24 +1,35 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ShoppingCart } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { ShoppingCart, Loader2 } from 'lucide-react'
 import { useCart } from '@/components/cart/cart-context'
 import { fetchMerchandise, createOrder } from '@/lib/api'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
 
+  // Redirect unauthenticated users to sign-in with callback URL
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      const callbackUrl = searchParams.get('callbackUrl') || '/cart'
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+    }
+  }, [status, router, searchParams])
+
+  // Fetch products for cart items
   useEffect(() => {
     let mounted = true
     setLoading(true)
@@ -29,6 +40,38 @@ export default function CartPage() {
     return () => { mounted = false }
   }, [])
 
+  // Show loading state while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="mt-4 text-foreground/60">Checking authentication...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Redirect to sign-in if not authenticated (backup check)
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="mt-4 text-foreground/60">Redirecting to sign in...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
   const items = cart.map((c) => {
     const product = products.find((p) => p.id === c.id)
     return { ...c, product }
@@ -37,15 +80,15 @@ export default function CartPage() {
   const subtotal = items.reduce((s, i) => s + (i.product?.price || 0) * i.quantity, 0)
 
   async function handleCheckout() {
-      if (!session?.user?.email) {
-        window.location.href = '/auth/signin'
-        return
-      }
-  
-      setCheckoutLoading(true)
-      try {
-        const payload = items.map((i) => ({ merchandise_id: i.id, quantity: i.quantity }))
-        const res = await createOrder(payload, session?.user?.email as string)
+    if (!session?.user?.email) {
+      window.location.href = '/auth/signin'
+      return
+    }
+
+    setCheckoutLoading(true)
+    try {
+      const payload = items.map((i) => ({ merchandise_id: i.id, quantity: i.quantity }))
+      const res = await createOrder(payload, session?.user?.email as string)
       clearCart()
       alert(`Order ${res.order_id} created. Total: ${res.total}`)
     } catch (err: any) {
@@ -128,3 +171,4 @@ export default function CartPage() {
     </div>
   )
 }
+
