@@ -357,10 +357,24 @@ export default function CartPage() {
                         }
                       />
                     </div>
-                    <div className="mt-4">
-                      <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleCheckout} disabled={checkoutLoading}>
-                        {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
-                      </Button>
+                  </div>
+                )}
+
+                {selectedPayment === 'card' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="cardNumber">Card Number</Label>
+                      <Input
+                        id="cardNumber"
+                        placeholder="1234 5678 9012 3456"
+                        value={paymentDetails.cardNumber}
+                        onChange={(e) =>
+                          setPaymentDetails({
+                            ...paymentDetails,
+                            cardNumber: e.target.value,
+                          })
+                        }
+                      />
                     </div>
                     <div className="mt-2">
                       <Button variant="outline" className="w-full" onClick={() => clearCart()}>Clear Cart</Button>
