@@ -76,23 +76,8 @@ export default function CartPage() {
     )
   }
 
-  // Redirect to sign-in if not authenticated (backup check)
-  if (status === 'unauthenticated') {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <p className="mt-4 text-foreground/60">Redirecting to sign in...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
-
-  const items = cart.map((c) => {
+  const items = cart
+    .map((c) => {
     const product = products.find((p) => p.id === c.id)
     return { ...c, product }
   }).filter(Boolean)
