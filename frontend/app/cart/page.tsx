@@ -136,6 +136,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+
       <main>
         <section className="bg-gradient-to-b from-primary/5 to-background py-12 border-b border-border">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
