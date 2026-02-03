@@ -343,10 +343,19 @@ export default function CartPage() {
 
                 {selectedPayment === 'mpesa' && (
                 <div className="space-y-4">
-                  <Card className="p-4">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-foreground/60">Subtotal</span>
-                      <span className="font-bold">{subtotal.toLocaleString()} KES</span>
+                    <div>
+                      <Label htmlFor="phone">M-Pesa Phone Number</Label>
+                      <Input
+                        id="phone"
+                        placeholder="0712345678"
+                        value={paymentDetails.phone}
+                        onChange={(e) =>
+                          setPaymentDetails({
+                            ...paymentDetails,
+                            phone: e.target.value,
+                          })
+                        }
+                      />
                     </div>
                     <div className="mt-4">
                       <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleCheckout} disabled={checkoutLoading}>
