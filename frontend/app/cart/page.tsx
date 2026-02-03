@@ -127,8 +127,10 @@ export default function CartPage() {
       clearCart()
       setCheckoutStep('confirmation')
     } catch (err: any) {
-      alert(err.message || 'Checkout failed')
-    } finally { setCheckoutLoading(false) }
+      alert(err.message || 'Failed to create order')
+    } finally {
+      setCheckoutLoading(false)
+    }
   }
 
   return (
