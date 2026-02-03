@@ -2,7 +2,8 @@
 import { Navbar } from '@/components/navbar'
 import { Hero } from '@/components/hero'
 import { FeaturedProjects } from '@/components/featured-projects'
-import { MerchandiseSection } from '@/components/merchandise-section'
+import { HowItWorks } from '@/components/how-it-works'
+import { WhyChooseUs } from '@/components/why-choose-us'
 import { CTASection } from '@/components/cta-section'
 import { Footer } from '@/components/footer'
 import { SessionProvider } from "next-auth/react"
@@ -15,7 +16,8 @@ export default function Home({session}:any) {
       <main className="overflow-hidden">
         <Hero />
         <FeaturedProjects />
-        <MerchandiseSection />
+        <HowItWorks />
+        <WhyChooseUs />
         <CTASection />
       </main>
       <Footer />

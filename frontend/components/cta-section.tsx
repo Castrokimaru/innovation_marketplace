@@ -34,18 +34,19 @@ export function CTASection() {
             </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3 pt-8">
-            {[
-              { icon: '📈', label: 'Showcase Your Work', desc: 'Build your portfolio and reach millions' },
-              { icon: '💼', label: 'Land Opportunities', desc: 'Connect with companies and investors' },
-              { icon: '🚀', label: 'Launch a Startup', desc: 'Turn your idea into a business' },
-            ].map((item, index) => (
-              <div key={index} className="text-center space-y-2">
-                <div className="text-4xl">{item.icon}</div>
-                <h3 className="font-semibold">{item.label}</h3>
-                <p className="text-sm text-foreground/60">{item.desc}</p>
-              </div>
-            ))}
+          <div className="grid gap-6 md:grid-cols-3 pt-8 text-center">
+            <div>
+              <div className="text-3xl font-bold text-primary">500+</div>
+              <div className="text-sm text-foreground/60">Projects Submitted</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-primary">200+</div>
+              <div className="text-sm text-foreground/60">Students Connected</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-primary">50+</div>
+              <div className="text-sm text-foreground/60">Recruiters Active</div>
+            </div>
           </div>
         </div>
       </div>

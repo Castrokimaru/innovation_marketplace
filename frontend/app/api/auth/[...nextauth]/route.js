@@ -25,10 +25,11 @@ const handler = NextAuth({
         const user = await res.json()
         if (res.ok && user) {
           return {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            accessToken: user.access_token || user.accessToken
+            id: user.user_id,
+            email: credentials.email,
+            username: credentials.email, // Using email as username for now
+            accessToken: user.access_token,
+            role: user.role
           }
         }
 
@@ -44,6 +45,7 @@ const handler = NextAuth({
       token.email = user.email
       token.username = user.username
       token.accessToken = user.accessToken
+      token.role = user.role
     }
     return token
   },
@@ -53,6 +55,7 @@ const handler = NextAuth({
     session.user.email = token.email
     session.user.username = token.username
     session.accessToken = token.accessToken
+    session.user.role = token.role
     return session
   }
 }
