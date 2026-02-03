@@ -26,6 +26,7 @@ export default function CartPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
+
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
