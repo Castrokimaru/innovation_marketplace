@@ -117,8 +117,13 @@ export default function CartPage() {
 
     setCheckoutLoading(true)
     try {
-      const payload = items.map((i) => ({ merchandise_id: i.id, quantity: i.quantity }))
-      const res = await createOrder(payload, session?.user?.email as string)
+      const payload = items.map((i) => ({
+        merchandise_id: i.id,
+        quantity: i.quantity,
+      }))
+
+      const res = await createOrder(payload, session?.accessToken)
+      setOrderDetails(res)
       clearCart()
       alert(`Order ${res.order_id} created. Total: ${res.total}`)
     } catch (err: any) {
