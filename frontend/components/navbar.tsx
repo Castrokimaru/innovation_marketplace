@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+// import { Input } from '@/components/ui/input'
 import { Menu, Search, ShoppingCart } from 'lucide-react'
 import { useCart } from '@/components/cart/cart-context'
 
@@ -31,19 +31,19 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <div className="relative w-64">
+            {/* <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search projects..."
                 className="pl-10 bg-muted border-0"
               />
-            </div>
+            </div> */}
             <Link href="/auth/signin">
               <Button variant="outline">Sign In</Button>
             </Link>
-            <Link href="/submit-project">
+            {/* <Link href="/submit-project">
               <Button className="bg-primary hover:bg-primary/90">Post Project</Button>
-            </Link>
+            </Link> */}
 
             <Link href="/cart" className="relative">
               <Button variant="outline" size="icon">
