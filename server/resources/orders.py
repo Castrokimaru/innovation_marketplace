@@ -47,3 +47,26 @@ class OrderCreate(Resource):
             "order_id": order.id,
             "total": float(total)
         }, 201
+
+class OrderDelete(Resource):
+    @jwt_required()
+    def delete(self, order_id):
+        user_id = int(get_jwt_identity())
+
+        order = Order.query.get(order_id)
+        if not order:
+            return {"error": "Order not found"}, 404
+
+        if order.user_id != user_id:
+            return {"error": "Unauthorized"}, 403
+
+        if order.status != "pending":
+            return {"error": "Order cannot be deleted"}, 400
+
+        for item in order.items:
+            item.merchandise.stock += item.quantity
+
+        order.status = "cancelled"
+        db.session.commit()
+
+        return {"message": "Order cancelled"}, 200
