@@ -4,6 +4,9 @@ import { ProjectCard } from './project-card'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const FEATURED_PROJECTS = [
   {
@@ -61,6 +64,22 @@ const FEATURED_PROJECTS = [
 ]
 
 export function FeaturedProjects() {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleViewAllProjects = () => {
+    if (!session && mounted) {
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`)
+    } else {
+      router.push('/projects')
+    }
+  }
+
   return (
     <section className="relative overflow-hidden py-20 md:py-28">
       {/* Background image */}
@@ -95,16 +114,15 @@ export function FeaturedProjects() {
 
           {/* CTA */}
           <div className="flex justify-center pt-2">
-            <Link href="/projects">
-              <Button
-                size="lg"
-                variant="outline"
-                className="group border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                View All Projects
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="group border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              onClick={handleViewAllProjects}
+            >
+              View All Projects
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Button>
           </div>
         </div>
       </div>
