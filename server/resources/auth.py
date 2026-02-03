@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
-
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, User, UserRole
 
 
@@ -57,4 +57,36 @@ class Login(Resource):
             "access_token": token,
             "user_id": user.id,
             "role": user.role.name
+        }, 200
+
+class UpdateProfile(Resource):
+    @jwt_required()
+    def patch(self):
+        user_id = get_jwt_identity()
+        data = request.get_json()
+
+        user = User.query.get(user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        # Optional updates
+        if "first_name" in data:
+            user.first_name = data["first_name"]
+
+        if "last_name" in data:
+            user.last_name = data["last_name"]
+
+        if "password" in data:
+            user.password_hash = generate_password_hash(data["password"])
+
+        db.session.commit()
+
+        return {
+            "message": "Profile updated successfully",
+            "user": {
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email
+            }
         }, 200
