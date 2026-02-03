@@ -294,12 +294,21 @@ export default function CartPage() {
                           Visa, Mastercard, etc.
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center">
-                          <Button variant="outline" size="sm" onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</Button>
-                          <Input className="w-12 text-center mx-2" value={String(item.quantity)} onChange={(e) => updateQuantity(item.id, Number(e.target.value) || 0)} />
-                          <Button variant="outline" size="sm" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</Button>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50">
+                    <RadioGroupItem value="cash" id="cash" />
+                    <Label
+                      htmlFor="cash"
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">₵</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Cash on Delivery</div>
+                        <div className="text-sm text-muted-foreground">
+                          Pay when you receive your order
                         </div>
                         <Button variant="outline" size="sm" onClick={() => removeFromCart(item.id)}>Remove</Button>
                       </div>
