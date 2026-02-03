@@ -12,8 +12,8 @@ import { fetchMerchandise } from '@/lib/api'
 
 export default function ShopPage() {
   const { addToCart, cart } = useCart()
-  const [products, setProducts] = useState<typeof PRODUCTS>(PRODUCTS)
-  const [loading, setLoading] = useState(false)
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   // helper to show qty in local grid
   const getQty = (id: number) => {
