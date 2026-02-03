@@ -1,60 +1,64 @@
 import NextAuth from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials"
 
 const handler = NextAuth({
-  // your auth config here
-  secret: 'cjkKzRjUWvsghv39UKJSQ8kgg/MeR5oFbvJy4UW9adM=',
+  secret: process.env.NEXTAUTH_SECRET,
+
   providers: [
-  CredentialsProvider({
-    // The name to display on the sign in form (e.g. "Sign in with...")
-    name: "Credentials",
-    // `credentials` is used to generate a form on the sign in page.
-    // You can specify which fields should be submitted, by adding keys to the `credentials` object.
-    // e.g. domain, username, password, 2FA token, etc.
-    // You can pass any HTML attribute to the <input> tag through the object.
-    credentials: {
-      email: { label: "Email", type: "text", placeholder: "jsmith" },
-      password: { label: "Password", type: "password" }
-    },
-    async authorize(credentials, req) {
-      // Add logic here to look up the user from the credentials supplied
-    //   const user = { id: "1", name: "J Smith", email: "jsmith@example.com" }
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text", placeholder: "jsmith" },
+        password: { label: "Password", type: "password" }
+      },
 
-    const res = await fetch("http://localhost:5555/login", {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-        headers: {"Content-Type": "application/json"}
+      async authorize(credentials) {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/login`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(credentials)
+          }
+        )
+
+        const user = await res.json()
+        if (res.ok && user) {
+          return {
+            id: user.user_id,
+            email: credentials.email,
+            username: credentials.email, // Using email as username for now
+            accessToken: user.access_token,
+            role: user.role
+          }
+        }
+
+        return null
+      }
     })
-
-    const user = await res.json()
-    if(res.ok && user){
-        return user
-    }
-
-    return null
-     
-    }
-  })
-],
+  ],
 
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.email = user.email
-        token.username = user.username
-      }
-      return token
-    },
-
-    async session({ session, token }) {
-      session.user.id = token.id
-      session.user.email = token.email
-      session.user.username = token.username
-      return session
+  async jwt({ token, user }) {
+    if (user) {
+      token.id = user.id
+      token.email = user.email
+      token.username = user.username
+      token.accessToken = user.accessToken
+      token.role = user.role
     }
-  }
+    return token
+  },
 
+  async session({ session, token }) {
+    session.user.id = token.id
+    session.user.email = token.email
+    session.user.username = token.username
+    session.accessToken = token.accessToken
+    session.user.role = token.role
+    return session
+  }
+}
 
 })
 

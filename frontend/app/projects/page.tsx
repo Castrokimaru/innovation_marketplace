@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { ProjectCard } from '@/components/project-card'
+import { fetchProjects } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -14,89 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-const ALL_PROJECTS = [
-  {
-    id: 1,
-    title: 'HealthTech Appointment System',
-    description: 'AI-powered healthcare appointment booking platform with real-time clinic sync.',
-    category: 'HealthTech',
-    author: 'Team Alpha',
-    technologies: ['React', 'Node.js', 'PostgreSQL'],
-    views: 1250,
-    rating: 4.8,
-  },
-  {
-    id: 2,
-    title: 'EdTech Learning Analytics Dashboard',
-    description: 'Real-time student performance analytics with predictive learning paths.',
-    category: 'EdTech',
-    author: 'Team Beta',
-    technologies: ['Next.js', 'Python', 'TensorFlow'],
-    views: 980,
-    rating: 4.6,
-  },
-  {
-    id: 3,
-    title: 'FinTech Mobile Wallet',
-    description: 'Secure mobile payment solution with peer-to-peer transfers.',
-    category: 'FinTech',
-    author: 'Team Gamma',
-    technologies: ['Flutter', 'Firebase', 'Stripe'],
-    views: 1540,
-    rating: 4.9,
-  },
-  {
-    id: 4,
-    title: 'AgriTech Smart Farming',
-    description: 'IoT and AI-based crop monitoring for optimal yield.',
-    category: 'AgriTech',
-    author: 'Team Delta',
-    technologies: ['Python', 'Arduino', 'AWS'],
-    views: 850,
-    rating: 4.7,
-  },
-  {
-    id: 5,
-    title: 'Social Media Analytics Tool',
-    description: 'Real-time social media performance tracking and insights generation.',
-    category: 'SaaS',
-    author: 'Team Echo',
-    technologies: ['React', 'MongoDB', 'Express'],
-    views: 650,
-    rating: 4.5,
-  },
-  {
-    id: 6,
-    title: 'E-Commerce Platform',
-    description: 'Full-stack marketplace with payment integration and seller dashboard.',
-    category: 'E-Commerce',
-    author: 'Team Foxtrot',
-    technologies: ['Next.js', 'Prisma', 'Stripe'],
-    views: 1100,
-    rating: 4.8,
-  },
-  {
-    id: 7,
-    title: 'AI Resume Parser',
-    description: 'Machine learning-powered resume analysis for recruitment teams.',
-    category: 'AI/ML',
-    author: 'Team Golf',
-    technologies: ['Python', 'TensorFlow', 'FastAPI'],
-    views: 750,
-    rating: 4.7,
-  },
-  {
-    id: 8,
-    title: 'Real Estate Search Engine',
-    description: 'Advanced search with property recommendations and virtual tours.',
-    category: 'Real Estate',
-    author: 'Team Hotel',
-    technologies: ['React', 'Node.js', 'Elasticsearch'],
-    views: 920,
-    rating: 4.6,
-  },
-]
+
+
 
 const CATEGORIES = ['All', 'HealthTech', 'EdTech', 'FinTech', 'AgriTech', 'SaaS', 'E-Commerce', 'AI/ML', 'Real Estate']
 
@@ -104,13 +25,25 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
   const [sortBy, setSortBy] = useState('newest')
+  const [projects, setProjects] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const filtered = ALL_PROJECTS.filter((project) => {
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    fetchProjects()
+      .then((data) => { if (mounted) setProjects(data) })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  const filtered = projects.filter((project) => {
     const matchesSearch =
-      project.title.toLowerCase().includes(search.toLowerCase()) ||
-      project.description.toLowerCase().includes(search.toLowerCase()) ||
-      project.author.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = category === 'All' || project.category === category
+      project.title?.toLowerCase().includes(search.toLowerCase()) ||
+      project.description?.toLowerCase().includes(search.toLowerCase()) ||
+      (project.submitted_name || '').toLowerCase().includes(search.toLowerCase())
+    const matchesCategory = category === 'All' || (project.categories || []).some((c: any) => c.name === category)
     return matchesSearch && matchesCategory
   })
 
@@ -187,10 +120,23 @@ export default function ProjectsPage() {
         {/* Projects Grid */}
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {sorted.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12">Loading projects...</div>
+            ) : sorted.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {sorted.map((project) => (
-                  <ProjectCard key={project.id} {...project} />
+                {sorted.map((project: any) => (
+                  <ProjectCard
+                    key={project.id}
+                    id={project.id}
+                    title={project.title}
+                    description={project.description}
+                    image={project.image}
+                    technologies={project.technologies || []}
+                    category={(project.categories && project.categories[0] && project.categories[0].name) || 'General'}
+                    author={project.submitted_name || 'Team'}
+                    views={project.views || 0}
+                    rating={project.rating || 4.6}
+                  />
                 ))}
               </div>
             ) : (

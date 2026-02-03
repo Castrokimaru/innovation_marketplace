@@ -1,0 +1,130 @@
+'use client'
+
+import React from 'react'
+import { Navbar } from '@/components/navbar'
+import { Footer } from '@/components/footer'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { ShoppingCart } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useCart } from '@/components/cart/cart-context'
+import { fetchMerchandise, createOrder } from '@/lib/api'
+import { useSession } from 'next-auth/react'
+
+export default function CartPage() {
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
+  const { data: session } = useSession()
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    fetchMerchandise()
+      .then((data) => { if (mounted) setProducts(data) })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  const items = cart.map((c) => {
+    const product = products.find((p) => p.id === c.id)
+    return { ...c, product }
+  }).filter(Boolean)
+
+  const subtotal = items.reduce((s, i) => s + (i.product?.price || 0) * i.quantity, 0)
+
+  async function handleCheckout() {
+      if (!session?.user?.email) {
+        window.location.href = '/auth/signin'
+        return
+      }
+  
+      setCheckoutLoading(true)
+      try {
+        const payload = items.map((i) => ({ merchandise_id: i.id, quantity: i.quantity }))
+        const res = await createOrder(payload, session?.user?.email as string)
+      clearCart()
+      alert(`Order ${res.order_id} created. Total: ${res.total}`)
+    } catch (err: any) {
+      alert(err.message || 'Checkout failed')
+    } finally { setCheckoutLoading(false) }
+  }
+
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      <main>
+        <section className="bg-gradient-to-b from-primary/5 to-background py-12 border-b border-border">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h1 className="text-4xl font-bold mb-2">Your Cart</h1>
+            <p className="text-lg text-foreground/60">Review items in your cart before checkout</p>
+          </div>
+        </section>
+
+        <section className="py-12">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            {items.length === 0 ? (
+              <div className="text-center py-24">
+                <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h2 className="text-2xl font-bold mt-4">Your cart is empty</h2>
+                <p className="text-foreground/60 mt-2">Add some great merchandise from the shop</p>
+                <div className="mt-6">
+                  <a href="/shop">
+                    <Button>Browse Store</Button>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-8 md:grid-cols-3">
+                <div className="md:col-span-2 space-y-4">
+                  {items.map((item) => (
+                    <Card key={item.id} className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="text-5xl">{item.product?.image}</div>
+                        <div>
+                          <div className="font-medium">{item.product?.name}</div>
+                          <div className="text-sm text-foreground/60">{item.product?.color}</div>
+                          <div className="text-sm text-foreground/60 mt-1">{(item.product?.price || 0).toLocaleString()} KES</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center">
+                          <Button variant="outline" size="sm" onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</Button>
+                          <Input className="w-12 text-center mx-2" value={String(item.quantity)} onChange={(e) => updateQuantity(item.id, Number(e.target.value) || 0)} />
+                          <Button variant="outline" size="sm" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</Button>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => removeFromCart(item.id)}>Remove</Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  <Card className="p-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-foreground/60">Subtotal</span>
+                      <span className="font-bold">{subtotal.toLocaleString()} KES</span>
+                    </div>
+                    <div className="mt-4">
+                      <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleCheckout} disabled={checkoutLoading}>
+                        {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
+                      </Button>
+                    </div>
+                    <div className="mt-2">
+                      <Button variant="outline" className="w-full" onClick={() => clearCart()}>Clear Cart</Button>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  )
+}

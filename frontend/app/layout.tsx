@@ -1,7 +1,7 @@
 import React from "react"
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
+import AnalyticsClient from './analytics-client'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -30,16 +30,23 @@ export const metadata: Metadata = {
   },
 }
 
+import { CartProvider } from '@/components/cart/cart-context'
+import AuthProvider from '@/components/auth-provider'
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`font-sans antialiased`}>
-        {children}
-        <Analytics />
+    <html lang="en" data-google-analytics-opt-out="">
+      <body suppressHydrationWarning className={`font-sans antialiased`}>
+        <AuthProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </AuthProvider>
+        <AnalyticsClient />
       </body>
     </html>
   )

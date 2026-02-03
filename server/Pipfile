@@ -14,11 +14,15 @@ importlib-metadata = "*"
 importlib-resources = "*"
 ipdb = "*"
 sqlalchemy-serializer = "*"
-flask-cors="*"
-flask-bcrypt="*"
-flask-jwt-extended="*"
+flask-cors = "*"
+flask-bcrypt = "*"
+flask-jwt-extended = "*"
+python-dotenv = "*"
+requests = "*"
+pillow = "*"            
+email-validator = "*"   
 
 [dev-packages]
 
 [requires]
-python_version = "3.12.3"
+python_version = "3.12"
