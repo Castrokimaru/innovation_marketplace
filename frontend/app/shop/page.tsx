@@ -68,9 +68,6 @@ export default function ShopPage() {
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
                           <div className="text-2xl font-bold text-primary">{(product.price || 0).toLocaleString()} KES</div>
-                          <div className="text-xs text-foreground/60">
-                            ⭐ {product.rating} ({product.reviews} reviews)
-                          </div>
                         </div>
                         {product.inStock ? (
                           <Badge className="bg-green-500/20 text-green-700 dark:text-green-400">In Stock</Badge>
