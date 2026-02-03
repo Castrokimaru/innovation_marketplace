@@ -69,10 +69,7 @@ export default function CartPage() {
       <div className="min-h-screen">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <p className="mt-4 text-foreground/60">Checking authentication...</p>
-          </div>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
         <Footer />
       </div>
