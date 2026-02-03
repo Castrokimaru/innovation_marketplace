@@ -34,6 +34,7 @@ def create_app():
     api.add_resource(UpdateProfile, "/profile")
 
     api.add_resource(ProjectList, "/projects")
+    
     api.add_resource(MerchandiseList, "/merchandise")
 
     api.add_resource(OrderCreate, "/orders")
