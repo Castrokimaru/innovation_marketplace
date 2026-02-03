@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ShoppingCart, Heart } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { PRODUCTS } from '@/lib/products'
 import { useCart } from '@/components/cart/cart-context'
 import { fetchMerchandise } from '@/lib/api'
 
