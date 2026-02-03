@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { useCart } from '@/components/cart/cart-context'
 import { fetchMerchandise, createOrder } from '@/lib/api'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function CartPage() {
@@ -22,7 +22,6 @@ export default function CartPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false)
 
   // Redirect unauthenticated users to sign-in with callback URL
-  
   useEffect(() => {
     if (status === 'unauthenticated') {
       const callbackUrl = searchParams.get('callbackUrl') || '/cart'
