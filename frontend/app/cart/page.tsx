@@ -50,7 +50,7 @@ export default function CartPage() {
     }
   }, [status, router, searchParams])
 
-  // Fetch products for cart items
+  /* Fetch products */
   useEffect(() => {
     let mounted = true
     setLoading(true)
