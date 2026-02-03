@@ -455,6 +455,7 @@ export default function CartPage() {
           </div>
         </section>
       </main>
+
       <Footer />
     </div>
   )
