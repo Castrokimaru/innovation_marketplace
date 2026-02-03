@@ -56,7 +56,7 @@ export function Navbar() {
               <Button variant="outline" size="icon">
                 <ShoppingCart className="h-4 w-4" />
               </Button>
-              {totalItems > 0 && (
+              {hydrated && totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-xs text-white rounded-full px-2 py-0.5">{totalItems}</span>
               )}
             </Link>
