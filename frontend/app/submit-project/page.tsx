@@ -179,48 +179,12 @@ export default function SubmitProjectPage() {
             </div>
 
             {/* Technologies */}
-            <Card className="p-8 space-y-6">
-              <h2 className="text-2xl font-bold">Technologies</h2>
-              <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
-                {TECHNOLOGIES.map(tech => (
-                  <Button
-                    key={tech}
-                    type="button"
-                    variant={selectedTechs.includes(tech) ? 'default' : 'outline'}
-                    onClick={() => handleAddTech(tech)}
-                  >
-                    {tech}
-                  </Button>
-                ))}
-              </div>
-              {selectedTechs.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg">
-                  {selectedTechs.map(tech => (
-                    <Badge key={tech} className="bg-primary text-sm">
-                      {tech}
-                      <button type="button" onClick={() => handleRemoveTech(tech)}>
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </Card>
-
-            {/* Team Members */}
-            <Card className="p-8 space-y-6">
-              <h2 className="text-2xl font-bold">Team Members</h2>
-              {formData.teamMembers.map((member, idx) => (
-                <div key={idx} className="flex gap-2 mb-2">
-                  <Autocomplete
-                    value={member}
-                    onChange={v => handleUpdateTeamMember(idx, v)}
-                    options={KNOWN_USERS}
-                  />
-                  {formData.teamMembers.length > 1 && (
-                    <Button type="button" variant="outline" onClick={() => handleRemoveTeamMember(idx)}>
-                      <X className="h-4 w-4" />
-                    </Button>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Technologies (comma-separated)</label>
+              <Input placeholder="React, Next.js, Flask" {...register('technologies')} />
+              {errors.technologies && <p className="text-sm text-destructive">{errors.technologies.message}</p>}
+              {techPreview.length > 0 && (
+                <p className="text-xs text-muted-foreground">Parsed: {techPreview.join(' • ')}</p>
                   )}
                 </div>
               ))}
