@@ -68,13 +68,9 @@ export default function SubmitProjectPage() {
     defaultValues: {
     title: '',
     description: '',
-    longDescription: '',
-    category: '',
-    technologies: [],
-    liveLink: '',
-    githubLink: '',
-    videoLink: '',
-    teamMembers: [''],
+    video: '',
+    technologies: '',
+    category: 'Other',
   },
     mode: 'onTouched',
   })
