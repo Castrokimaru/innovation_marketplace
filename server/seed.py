@@ -88,6 +88,55 @@ def seed_categories():
 
     db.session.commit()
 
+def seed_projects(students):
+    categories = Category.query.all()
+
+    for _ in range(10):
+        project = Project(
+            title=fake.sentence(nb_words=4),
+            description=fake.paragraph(nb_sentences=4),
+            video=fake.url(),
+            technologies=", ".join(fake.words(4)),
+            submitted_name=fake.name(),
+            status=random.choice(["pending", "approved"]),
+        )
+        db.session.add(project)
+        db.session.commit()
+
+        owner = random.choice(students)
+
+        db.session.add(
+            UserProject(
+                user_id=owner.id,
+                project_id=project.id,
+                action="owner",
+            )
+        )
+
+        contributors = random.sample(
+            [s for s in students if s.id != owner.id],
+            k=random.randint(1, 3),
+        )
+
+        for student in contributors:
+            db.session.add(
+                UserProject(
+                    user_id=student.id,
+                    project_id=project.id,
+                    action="contributor",
+                )
+            )
+
+        for category in random.sample(categories, k=2):
+            db.session.add(
+                ProjectCategory(
+                    project_id=project.id,
+                    category_id=category.id,
+                )
+            )
+
+        db.session.commit()
+
 
 if __name__ == "__main__":
     with app.app_context():
@@ -102,3 +151,6 @@ if __name__ == "__main__":
 
         print("Seed categories")
         seed_categories()
+
+        print("Seed projects")
+        seed_projects(students)
