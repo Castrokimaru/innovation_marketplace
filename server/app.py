@@ -5,8 +5,13 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 from models import db
+<<<<<<< HEAD
 import os
 
+=======
+
+from resources.admin import AdminUserList
+>>>>>>> 2ffbd49 (endpoint for viewing all users)
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList
 from resources.merchandise import MerchandiseList, MerchandiseItem
@@ -44,6 +49,7 @@ def create_app():
     api.add_resource(CategoryCreate, "/admin/categories")
     api.add_resource(ApproveProject, "/admin/projects/<int:project_id>/approve")
     api.add_resource(RejectProject, "/admin/projects/<int:project_id>/reject")
+    api.add_resource(AdminUserList, "/admin/users")
 
     api.add_resource(BrowseProjects, "/recruiters/projects")
     @app.route("/")
