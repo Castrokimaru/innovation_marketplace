@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Heart, Share2, Github, Globe, Calendar, Users } from 'lucide-react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { PROJECTS } from '@/lib/projects'
 
 export default function ProjectDetailPage() {
   const params = useParams()
   const projectId = params.id
+  const [isLiked, setIsLiked] = useState(false)
 
   interface Project {
     id: number
@@ -86,10 +88,12 @@ export default function ProjectDetailPage() {
                   💻
                 </div>
                 <div className="space-y-3">
-                  <Button className="w-full bg-primary hover:bg-primary/90">
-                    <Heart className="mr-2 h-4 w-4" />
-                    Save Project
-                  </Button>
+                  <button
+                    onClick={() => setIsLiked(!isLiked)}
+                    className="w-full flex justify-center items-center p-2 rounded-md hover:bg-muted/50 transition-colors"
+                  >
+                    <Heart className={`h-6 w-6 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                  </button>
                   <Button variant="outline" className="w-full bg-transparent">
                     <Share2 className="mr-2 h-4 w-4" />
                     Share
