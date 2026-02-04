@@ -94,9 +94,6 @@ export default function ProjectDetailPage() {
                     <Share2 className="mr-2 h-4 w-4" />
                     Share
                   </Button>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    Contact Team
-                  </Button>
                 </div>
               </Card>
             </div>
@@ -165,29 +162,9 @@ export default function ProjectDetailPage() {
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    Contact Team
-                  </Button>
                 </Card>
 
-                {/* Stats */}
-                <Card className="p-6 space-y-4">
-                  <h3 className="font-bold text-lg">Project Stats</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-foreground/60">Views</span>
-                      <span className="font-bold">{project.views}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-foreground/60">Rating</span>
-                      <span className="font-bold">⭐ {project.rating}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-foreground/60">Reviews</span>
-                      <span className="font-bold">{project.reviews}</span>
-                    </div>
-                  </div>
-                </Card>
+
               </div>
             </div>
           </div>
