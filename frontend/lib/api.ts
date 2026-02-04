@@ -1,9 +1,10 @@
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
 
-function authHeaders(token?: string) {
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  }
+function authHeaders(token?: string): HeadersInit {
+if (!token)   return {}
+
+  const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
+  return { Authorization: `Bearer ${cleaned}`   }
 }
 
 export async function fetchMerchandise() {
