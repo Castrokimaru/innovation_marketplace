@@ -314,7 +314,7 @@ export default function StudentDashboard() {
               <p className="mt-2 text-sm text-foreground/70">
                 Submit your first project to showcase your work.
               </p>
-              <Link href="/dashboard/projects/new">
+              <Link href="/submit-project">
                 <Button className="mt-5">
                   <Plus className="mr-2 h-4 w-4" />
                   Submit Project
