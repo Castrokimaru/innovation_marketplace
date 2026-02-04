@@ -137,6 +137,27 @@ def seed_projects(students):
 
         db.session.commit()
 
+def seed_merchandise():
+    items = [
+        ("Moringa Hoodie", 3500),
+        ("Moringa Mug", 1200),
+        ("Moringa T-Shirt", 2500),
+        ("Laptop Sticker Pack", 800),
+    ]
+
+    for name, price in items:
+        db.session.add(
+            Merchandise(
+                name=name,
+                description=fake.sentence(),
+                price=price,
+                stock=random.randint(10, 50),
+                image_url=fake.image_url(),
+            )
+        )
+
+    db.session.commit()
+
 
 if __name__ == "__main__":
     with app.app_context():
@@ -154,3 +175,6 @@ if __name__ == "__main__":
 
         print("Seed projects")
         seed_projects(students)
+
+        print("Seed merchandise")
+        seed_merchandise()
