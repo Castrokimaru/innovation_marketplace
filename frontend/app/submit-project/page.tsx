@@ -130,25 +130,27 @@ export default function SubmitProjectPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="py-12">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-2">Submit Your Project</h1>
-          <p className="text-lg text-foreground/60 mb-8">
-            Share your capstone project with the Moringa community and the world
-          </p>
+      <main className="container mx-auto px-4 py-10">
+        <div className="flex items-start justify-between gap-4">
+<div>
+          <h1 className="text-3xl font-bold">Submit Project</h1>
+          <p className="text-foreground/70">All fields are required.</p>
+          </div>
+          <Badge variant="secondary">{isSubmitting ? 'Submitting…' : 'Ready'}</Badge>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Project Info */}
-            <Card className="p-8 space-y-6">
-              <Label htmlFor="title">Project Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={e => setFormData({ ...formData, title: e.target.value })}
-                required
-              />
+        <Card className="mt-6 p-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Title */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Title</label>
+              <Input placeholder="e.g. Innovation Marketplace" {...register('title')} />
+              {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+            </div>
 
-              <Label htmlFor="category">Category *</Label>
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
               <Select
                 value={formData.category}
                 onValueChange={value => setFormData({ ...formData, category: value })}
