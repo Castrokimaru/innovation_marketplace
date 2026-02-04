@@ -66,12 +66,12 @@ export default function SubmitProjectPage() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-    title: '',
-    description: '',
-    video: '',
-    technologies: '',
-    category: 'Other',
-  },
+      title: '',
+      description: '',
+      video: '',
+      technologies: '',
+      category: 'Other',
+    },
     mode: 'onTouched',
   })
 
@@ -94,13 +94,13 @@ export default function SubmitProjectPage() {
       'Student'
 
     const payload: CreateProjectPayload = {
-        title: values.title.trim(),
-        description: values.description.trim(),
-        video: values.video.trim(),
-        technologies: values.technologies.trim(),
-        submitted_name,
-        team_members: [],
-        category_ids: [],
+      title: values.title.trim(),
+      description: values.description.trim(),
+      video: values.video.trim(),
+      technologies: values.technologies.trim(), 
+      submitted_name,
+      team_members: [],
+      category_ids: [],
     }
 
     try {
@@ -130,11 +130,12 @@ export default function SubmitProjectPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+
       <main className="container mx-auto px-4 py-10">
         <div className="flex items-start justify-between gap-4">
-<div>
-          <h1 className="text-3xl font-bold">Submit Project</h1>
-          <p className="text-foreground/70">All fields are required.</p>
+          <div>
+            <h1 className="text-3xl font-bold">Submit Project</h1>
+            <p className="text-foreground/70">All fields are required.</p>
           </div>
           <Badge variant="secondary">{isSubmitting ? 'Submitting…' : 'Ready'}</Badge>
         </div>
@@ -185,22 +186,23 @@ export default function SubmitProjectPage() {
               {errors.technologies && <p className="text-sm text-destructive">{errors.technologies.message}</p>}
               {techPreview.length > 0 && (
                 <p className="text-xs text-muted-foreground">Parsed: {techPreview.join(' • ')}</p>
-                  )}
-                </div>
-              
+              )}
+            </div>
+
             {/* Actions */}
             <div className="flex flex-wrap gap-3 pt-2">
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Submitting…' : 'Submit Project'}
               </Button>
-            
+
               <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => router.replace(DASHBOARD_PATH)}>
                 Cancel
               </Button>
             </div>
           </form>
-        </div>
+        </Card>
       </main>
+
       <Footer />
     </div>
   )
