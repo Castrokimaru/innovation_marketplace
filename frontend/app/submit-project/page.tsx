@@ -151,21 +151,17 @@ export default function SubmitProjectPage() {
             {/* Description */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
-              <Select
-                value={formData.category}
-                onValueChange={value => setFormData({ ...formData, category: value })}
-              >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <textarea
+                className="w-full min-h-[120px] rounded-md border bg-background px-3 py-2 text-sm"
+                placeholder="What does your project do? Who is it for? What problem does it solve?"
+                {...register('description')}
+              />
+              {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+            </div>
 
-              <Label htmlFor="description">Short Description *</Label>
+            {/* Video */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Demo Video URL</label>
               <Textarea
                 id="description"
                 value={formData.description}
