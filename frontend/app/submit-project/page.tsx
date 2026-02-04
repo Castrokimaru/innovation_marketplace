@@ -43,8 +43,29 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export default function SubmitProjectPage() {
-  const { data: session } = useSession()
-  const [formData, setFormData] = useState<FormData>({
+  const router = useRouter()
+  const { toast } = useToast()
+  const { data: session, status } = useSession()
+
+  const token = session?.accessToken
+  const DASHBOARD_PATH = '/student-dashboard'
+
+  useEffect(() => {
+    if (status === 'loading') return
+    if (!session || session.user.role !== 'student') {
+      router.replace('/auth/signin')
+    }
+  }, [session, status, router])
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    watch,
+    reset,
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
     title: '',
     description: '',
     longDescription: '',
