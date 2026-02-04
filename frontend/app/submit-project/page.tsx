@@ -88,27 +88,44 @@ export default function SubmitProjectPage() {
       return
     }
 
-    setSubmitting(true)
+    const submitted_name =
+      (session?.user as any)?.username ||
+      (session?.user as any)?.email ||
+      'Student'
+
+    const payload: CreateProjectPayload = {
+        title: values.title.trim(),
+        description: values.description.trim(),
+        video: values.video.trim(),
+        technologies: values.technologies.trim(),
+        submitted_name,
+        team_members: [],
+        category_ids: [],
+    }
+
     try {
-      const payload = {
-        title: formData.title,
-        description: formData.description,
-        longDescription: formData.longDescription,
-        video: formData.videoLink,
-        technologies: selectedTechs,
-        submitted_name: session.user?.username || session.user?.email || 'Anonymous',
-        team_members: formData.teamMembers,
-        category_ids: [], // map category names to IDs if needed
-      }
-      await createProject(payload, session.accessToken)
-      alert('Project submitted successfully! It will appear after approval.')
-      window.location.href = '/projects'
-    } catch (err: any) {
-      alert(err.message || 'Failed to submit project')
-    } finally {
-      setSubmitting(false)
+      await createProject(payload, token)
+
+      toast({
+        title: 'Project submitted',
+        description: 'Your project was created successfully.',
+      })
+
+      reset() 
+      router.replace(DASHBOARD_PATH)
+      router.refresh()
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Something went wrong.'
+      toast({
+        title: 'Submission failed',
+        description: message,
+        variant: 'destructive',
+      })
     }
   }
+
+  if (status === 'loading') return null
+  if (!session || session.user.role !== 'student') return null
 
   return (
     <div className="min-h-screen">
