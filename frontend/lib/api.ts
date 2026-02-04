@@ -1,10 +1,10 @@
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
 
 function authHeaders(token?: string): HeadersInit {
-if (!token)   return {}
+  if (!token) return {}
 
   const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
-  return { Authorization: `Bearer ${cleaned}`   }
+  return { Authorization: `Bearer ${cleaned}` }
 }
 
 export async function fetchMerchandise() {
@@ -87,7 +87,7 @@ export type CreateProjectPayload = {
 }
 
 export async function createProject(payload: any, token?: string) {
-const headers: HeadersInit = { 'Content-Type': 'application/json' }
+  const headers: HeadersInit = { 'Content-Type': 'application/json' }
 
   if (token) {
     const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
@@ -96,18 +96,15 @@ const headers: HeadersInit = { 'Content-Type': 'application/json' }
 
   const res = await fetch(`${BASE}/projects`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(token),
-    },
+    headers,
     body: JSON.stringify(payload),
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || 'Failed to create project')
-  }
-  return res.json()
+
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || data.message || 'Failed to create project')
+  return data
 }
+
 
 export async function signup(payload: {
   first_name: string
