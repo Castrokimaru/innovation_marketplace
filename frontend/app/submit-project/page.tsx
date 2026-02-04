@@ -162,21 +162,21 @@ export default function SubmitProjectPage() {
             {/* Video */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Demo Video URL</label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                required
-              />
+              <Input placeholder="https://youtube.com/..." {...register('video')} />
+              {errors.video && <p className="text-sm text-destructive">{errors.video.message}</p>}
+            </div>
 
-              <Label htmlFor="longDescription">Full Description *</Label>
-              <Textarea
-                id="longDescription"
-                value={formData.longDescription}
-                onChange={e => setFormData({ ...formData, longDescription: e.target.value })}
-                required
-              />
-            </Card>
+            {/* Category (UI-only) */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Category (optional)</label>
+              <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" {...register('category')}>
+                {CATEGORY_OPTIONS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Technologies */}
             <Card className="p-8 space-y-6">
