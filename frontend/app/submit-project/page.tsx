@@ -1,242 +1,208 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Upload, Plus, X } from 'lucide-react'
-import Autocomplete from '@/components/ui/autocomplete'
-import { createProject } from '@/lib/api'
+import { useToast } from '@/components/ui/use-toast'
 
-const CATEGORIES = [
-  'HealthTech', 'EdTech', 'FinTech', 'AgriTech',
-  'SaaS', 'E-Commerce', 'AI/ML', 'Real Estate',
-]
+import { createProject, type CreateProjectPayload } from '@/lib/api'
 
-const TECHNOLOGIES = [
-  'React', 'Next.js', 'Node.js', 'Python', 'Flutter',
-  'Mobile', 'PostgreSQL', 'MongoDB', 'AWS', 'Firebase',
-  'TypeScript', 'Vue',
-]
+const CATEGORY_OPTIONS = ['HealthTech', 'EdTech', 'FinTech', 'AgriTech', 'Other'] as const
 
-// Known users mock
-const KNOWN_USERS = [
-  'Alice Johnson','Bob Smith','Carol Davis','Daniel Otieno',
-  'Emily Wanjiru','Faith Njeri','George Kamau'
-]
-
-interface FormData {
-  title: string
-  description: string
-  longDescription: string
-  category: string
-  technologies: string[]
-  liveLink: string
-  githubLink: string
-  videoLink: string
-  teamMembers: string[]
+function parseTechnologies(raw: string): string[] {
+  return raw.split(',').map((s) => s.trim()).filter(Boolean)
 }
 
+const schema = z.object({
+  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(50, 'Max 50 characters'),
+  description: z
+    .string()
+    .trim()
+    .min(20, 'Description must be at least 20 characters')
+    .max(500, 'Max 500 characters'),
+  video: z
+    .string()
+    .trim()
+    .min(8, 'Video is required')
+    .refine((v) => /^https?:\/\/.+/i.test(v), 'Video must be a valid URL (https://...)'),
+  technologies: z.string().trim().min(2, 'Technologies is required (e.g. React, Flask)'),
+  category: z.enum(CATEGORY_OPTIONS).optional(), 
+})
+
+type FormValues = z.infer<typeof schema>
+
 export default function SubmitProjectPage() {
-  const { data: session } = useSession()
-  const [formData, setFormData] = useState<FormData>({
-    title: '',
-    description: '',
-    longDescription: '',
-    category: '',
-    technologies: [],
-    liveLink: '',
-    githubLink: '',
-    videoLink: '',
-    teamMembers: [''],
+  const router = useRouter()
+  const { toast } = useToast()
+  const { data: session, status } = useSession()
+
+  const token = session?.accessToken
+  const DASHBOARD_PATH = '/student-dashboard'
+
+  useEffect(() => {
+    if (status === 'loading') return
+    if (!session || session.user.role !== 'student') {
+      router.replace('/auth/signin')
+    }
+  }, [session, status, router])
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    watch,
+    reset,
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      title: '',
+      description: '',
+      video: '',
+      technologies: '',
+      category: 'Other',
+    },
+    mode: 'onTouched',
   })
-  const [selectedTechs, setSelectedTechs] = useState<string[]>([])
-  const [submitting, setSubmitting] = useState(false)
 
-  const handleAddTech = (tech: string) => {
-    if (!selectedTechs.includes(tech)) setSelectedTechs([...selectedTechs, tech])
-  }
+  const techPreview = useMemo(() => parseTechnologies(watch('technologies') || ''), [watch])
 
-  const handleRemoveTech = (tech: string) => {
-    setSelectedTechs(selectedTechs.filter(t => t !== tech))
-  }
-
-  const handleAddTeamMember = () => {
-    setFormData({ ...formData, teamMembers: [...formData.teamMembers, ''] })
-  }
-
-  const handleRemoveTeamMember = (index: number) => {
-    setFormData({
-      ...formData,
-      teamMembers: formData.teamMembers.filter((_, i) => i !== index),
-    })
-  }
-
-  const handleUpdateTeamMember = (index: number, value: string) => {
-    const members = [...formData.teamMembers]
-    members[index] = value
-    setFormData({ ...formData, teamMembers: members })
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // ✅ Check session and accessToken
-    if (!session?.accessToken) {
-      window.location.href = '/auth/signin'
+  const onSubmit = async (values: FormValues) => {
+    if (!token) {
+      toast({
+        title: 'Session expired',
+        description: 'Please sign in again.',
+        variant: 'destructive',
+      })
+      router.replace('/auth/signin')
       return
     }
 
-    setSubmitting(true)
+    const submitted_name =
+      (session?.user as any)?.username ||
+      (session?.user as any)?.email ||
+      'Student'
+
+    const payload: CreateProjectPayload = {
+      title: values.title.trim(),
+      description: values.description.trim(),
+      video: values.video.trim(),
+      technologies: values.technologies.trim(), 
+      submitted_name,
+      team_members: [],
+      category_ids: [],
+    }
+
     try {
-      const payload = {
-        title: formData.title,
-        description: formData.description,
-        longDescription: formData.longDescription,
-        video: formData.videoLink,
-        technologies: selectedTechs,
-        submitted_name: session.user?.username || session.user?.email || 'Anonymous',
-        team_members: formData.teamMembers,
-        category_ids: [], // map category names to IDs if needed
-      }
-      await createProject(payload, session.accessToken)
-      alert('Project submitted successfully! It will appear after approval.')
-      window.location.href = '/projects'
-    } catch (err: any) {
-      alert(err.message || 'Failed to submit project')
-    } finally {
-      setSubmitting(false)
+      await createProject(payload, token)
+
+      toast({
+        title: 'Project submitted',
+        description: 'Your project was created successfully.',
+      })
+
+      reset() 
+      router.replace(DASHBOARD_PATH)
+      router.refresh()
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Something went wrong.'
+      toast({
+        title: 'Submission failed',
+        description: message,
+        variant: 'destructive',
+      })
     }
   }
+
+  if (status === 'loading') return null
+  if (!session || session.user.role !== 'student') return null
 
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="py-12">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-2">Submit Your Project</h1>
-          <p className="text-lg text-foreground/60 mb-8">
-            Share your capstone project with the Moringa community and the world
-          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Project Info */}
-            <Card className="p-8 space-y-6">
-              <Label htmlFor="title">Project Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={e => setFormData({ ...formData, title: e.target.value })}
-                required
+      <main className="container mx-auto px-4 py-10">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Submit Project</h1>
+            <p className="text-foreground/70">All fields are required.</p>
+          </div>
+          <Badge variant="secondary">{isSubmitting ? 'Submitting…' : 'Ready'}</Badge>
+        </div>
+
+        <Card className="mt-6 p-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Title */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Title</label>
+              <Input placeholder="e.g. Innovation Marketplace" {...register('title')} />
+              {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <textarea
+                className="w-full min-h-[120px] rounded-md border bg-background px-3 py-2 text-sm"
+                placeholder="What does your project do? Who is it for? What problem does it solve?"
+                {...register('description')}
               />
+              {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+            </div>
 
-              <Label htmlFor="category">Category *</Label>
-              <Select
-                value={formData.category}
-                onValueChange={value => setFormData({ ...formData, category: value })}
-              >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Video */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Demo Video URL</label>
+              <Input placeholder="https://youtube.com/..." {...register('video')} />
+              {errors.video && <p className="text-sm text-destructive">{errors.video.message}</p>}
+            </div>
 
-              <Label htmlFor="description">Short Description *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                required
-              />
-
-              <Label htmlFor="longDescription">Full Description *</Label>
-              <Textarea
-                id="longDescription"
-                value={formData.longDescription}
-                onChange={e => setFormData({ ...formData, longDescription: e.target.value })}
-                required
-              />
-            </Card>
+            {/* Category (UI-only) */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Category (optional)</label>
+              <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" {...register('category')}>
+                {CATEGORY_OPTIONS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Technologies */}
-            <Card className="p-8 space-y-6">
-              <h2 className="text-2xl font-bold">Technologies</h2>
-              <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
-                {TECHNOLOGIES.map(tech => (
-                  <Button
-                    key={tech}
-                    type="button"
-                    variant={selectedTechs.includes(tech) ? 'default' : 'outline'}
-                    onClick={() => handleAddTech(tech)}
-                  >
-                    {tech}
-                  </Button>
-                ))}
-              </div>
-              {selectedTechs.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg">
-                  {selectedTechs.map(tech => (
-                    <Badge key={tech} className="bg-primary text-sm">
-                      {tech}
-                      <button type="button" onClick={() => handleRemoveTech(tech)}>
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Technologies (comma-separated)</label>
+              <Input placeholder="React, Next.js, Flask" {...register('technologies')} />
+              {errors.technologies && <p className="text-sm text-destructive">{errors.technologies.message}</p>}
+              {techPreview.length > 0 && (
+                <p className="text-xs text-muted-foreground">Parsed: {techPreview.join(' • ')}</p>
               )}
-            </Card>
+            </div>
 
-            {/* Team Members */}
-            <Card className="p-8 space-y-6">
-              <h2 className="text-2xl font-bold">Team Members</h2>
-              {formData.teamMembers.map((member, idx) => (
-                <div key={idx} className="flex gap-2 mb-2">
-                  <Autocomplete
-                    value={member}
-                    onChange={v => handleUpdateTeamMember(idx, v)}
-                    options={KNOWN_USERS}
-                  />
-                  {formData.teamMembers.length > 1 && (
-                    <Button type="button" variant="outline" onClick={() => handleRemoveTeamMember(idx)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button type="button" variant="outline" onClick={handleAddTeamMember}>
-                <Plus className="h-4 w-4 mr-2" /> Add Team Member
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting…' : 'Submit Project'}
               </Button>
-            </Card>
 
-            {/* Links & Media omitted for brevity */}
-
-            <div className="flex gap-4 justify-end">
-              <Button type="reset" variant="outline">Clear Form</Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={submitting}>
-                {submitting ? 'Submitting...' : 'Submit Project'}
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => router.replace(DASHBOARD_PATH)}>
+                Cancel
               </Button>
             </div>
           </form>
-        </div>
+        </Card>
       </main>
+
       <Footer />
     </div>
   )
