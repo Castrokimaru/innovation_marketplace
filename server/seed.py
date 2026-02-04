@@ -73,7 +73,21 @@ def seed_users():
         )
 
     db.session.commit()
-    return students   
+    return students  
+
+def seed_categories():
+    names = ["HealthTech", "EdTech", "FinTech", "AgriTech", "AI", "E-Commerce"]
+
+    for name in names:
+        db.session.add(
+            Category(
+                name=name,
+                description=fake.sentence(),
+            )
+        )
+
+    db.session.commit()
+
 
 if __name__ == "__main__":
     with app.app_context():
@@ -85,3 +99,6 @@ if __name__ == "__main__":
 
         print("Seed users")
         students = seed_users()
+
+        print("Seed categories")
+        seed_categories()
