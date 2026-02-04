@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Heart, MessageCircle, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 interface ProjectCardProps {
   id: number
@@ -29,6 +30,8 @@ export function ProjectCard({
   views = 0,
   rating = 0,
 }: ProjectCardProps) {
+  const [isLiked, setIsLiked] = useState(false)
+
   const techs = Array.isArray(technologies)
     ? technologies
     : typeof technologies === 'string'
@@ -108,50 +111,30 @@ export function ProjectCard({
 
         {/* Actions pinned to bottom */}
         <div className="mt-auto pt-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Button
+          <div className="flex justify-between items-center gap-2">
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              className="bg-transparent hover:bg-primary hover:text-white"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // TODO: save action
+                setIsLiked(!isLiked)
               }}
+              className="flex items-center justify-center p-2 rounded-md hover:bg-muted/50 transition-colors"
             >
-              <Heart className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="bg-transparent hover:bg-primary hover:text-white"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                // TODO: contact action
-              }}
-            >
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Contact
-            </Button>
+              <Heart className={`h-5 w-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+            </button>
 
             <Button
               type="button"
               size="sm"
-              className="bg-primary text-white hover:bg-primary/90"
+              className="bg-primary text-white hover:bg-primary/90 flex-1"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // Optional: navigate manually if you want view button to open
-                window.location.href = `/projects/${id}`
+                // TODO: hire team action
               }}
             >
-              <Eye className="mr-2 h-4 w-4" />
-              View
+              Hire Team
             </Button>
           </div>
         </div>
