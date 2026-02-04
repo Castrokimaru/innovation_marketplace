@@ -14,45 +14,33 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Upload, Plus, X } from 'lucide-react'
-import Autocomplete from '@/components/ui/autocomplete'
-import { createProject } from '@/lib/api'
+import { useToast } from '@/components/ui/use-toast'
 
-const CATEGORIES = [
-  'HealthTech', 'EdTech', 'FinTech', 'AgriTech',
-  'SaaS', 'E-Commerce', 'AI/ML', 'Real Estate',
-]
+import { createProject, type CreateProjectPayload } from '@/lib/api'
 
-const TECHNOLOGIES = [
-  'React', 'Next.js', 'Node.js', 'Python', 'Flutter',
-  'Mobile', 'PostgreSQL', 'MongoDB', 'AWS', 'Firebase',
-  'TypeScript', 'Vue',
-]
+const CATEGORY_OPTIONS = ['HealthTech', 'EdTech', 'FinTech', 'AgriTech', 'Other'] as const
 
-// Known users mock
-const KNOWN_USERS = [
-  'Alice Johnson','Bob Smith','Carol Davis','Daniel Otieno',
-  'Emily Wanjiru','Faith Njeri','George Kamau'
-]
-
-interface FormData {
-  title: string
-  description: string
-  longDescription: string
-  category: string
-  technologies: string[]
-  liveLink: string
-  githubLink: string
-  videoLink: string
-  teamMembers: string[]
+function parseTechnologies(raw: string): string[] {
+  return raw.split(',').map((s) => s.trim()).filter(Boolean)
 }
+
+const schema = z.object({
+  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(50, 'Max 50 characters'),
+  description: z
+    .string()
+    .trim()
+    .min(20, 'Description must be at least 20 characters')
+    .max(500, 'Max 500 characters'),
+  video: z
+    .string()
+    .trim()
+    .min(8, 'Video is required')
+    .refine((v) => /^https?:\/\/.+/i.test(v), 'Video must be a valid URL (https://...)'),
+  technologies: z.string().trim().min(2, 'Technologies is required (e.g. React, Flask)'),
+  category: z.enum(CATEGORY_OPTIONS).optional(), 
+})
+
+type FormValues = z.infer<typeof schema>
 
 export default function SubmitProjectPage() {
   const { data: session } = useSession()
