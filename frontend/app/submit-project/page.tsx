@@ -75,41 +75,20 @@ export default function SubmitProjectPage() {
     githubLink: '',
     videoLink: '',
     teamMembers: [''],
+  },
+    mode: 'onTouched',
   })
-  const [selectedTechs, setSelectedTechs] = useState<string[]>([])
-  const [submitting, setSubmitting] = useState(false)
 
-  const handleAddTech = (tech: string) => {
-    if (!selectedTechs.includes(tech)) setSelectedTechs([...selectedTechs, tech])
-  }
+  const techPreview = useMemo(() => parseTechnologies(watch('technologies') || ''), [watch])
 
-  const handleRemoveTech = (tech: string) => {
-    setSelectedTechs(selectedTechs.filter(t => t !== tech))
-  }
-
-  const handleAddTeamMember = () => {
-    setFormData({ ...formData, teamMembers: [...formData.teamMembers, ''] })
-  }
-
-  const handleRemoveTeamMember = (index: number) => {
-    setFormData({
-      ...formData,
-      teamMembers: formData.teamMembers.filter((_, i) => i !== index),
-    })
-  }
-
-  const handleUpdateTeamMember = (index: number, value: string) => {
-    const members = [...formData.teamMembers]
-    members[index] = value
-    setFormData({ ...formData, teamMembers: members })
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // ✅ Check session and accessToken
-    if (!session?.accessToken) {
-      window.location.href = '/auth/signin'
+  const onSubmit = async (values: FormValues) => {
+    if (!token) {
+      toast({
+        title: 'Session expired',
+        description: 'Please sign in again.',
+        variant: 'destructive',
+      })
+      router.replace('/auth/signin')
       return
     }
 
