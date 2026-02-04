@@ -76,6 +76,16 @@ export async function createOrder(
   return res.json()
 }
 
+export type CreateProjectPayload = {
+  title: string
+  description: string
+  video: string
+  technologies: string
+  submitted_name: string
+  team_members?: number[]
+  category_ids?: number[]
+}
+
 export async function createProject(payload: any, token?: string) {
   const res = await fetch(`${BASE}/projects`, {
     method: 'POST',
