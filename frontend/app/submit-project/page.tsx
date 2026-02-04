@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
