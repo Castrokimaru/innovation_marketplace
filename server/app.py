@@ -5,7 +5,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 from models import db
-
+import os
 
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList
