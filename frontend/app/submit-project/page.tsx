@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
