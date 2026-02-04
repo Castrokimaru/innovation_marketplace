@@ -218,7 +218,7 @@ export default function StudentDashboard() {
               <Button variant="outline">Edit Profile</Button>
             </Link>
 
-            <Link href="/dashboard/projects/new">
+            <Link href="/submit-project">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Submit Project
