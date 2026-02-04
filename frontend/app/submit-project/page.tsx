@@ -193,14 +193,9 @@ export default function SubmitProjectPage() {
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Submitting…' : 'Submit Project'}
               </Button>
-            </Card>
-
-            {/* Links & Media omitted for brevity */}
-
-            <div className="flex gap-4 justify-end">
-              <Button type="reset" variant="outline">Clear Form</Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={submitting}>
-                {submitting ? 'Submitting...' : 'Submit Project'}
+            
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => router.replace(DASHBOARD_PATH)}>
+                Cancel
               </Button>
             </div>
           </form>
