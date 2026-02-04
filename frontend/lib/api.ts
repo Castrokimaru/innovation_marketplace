@@ -87,6 +87,13 @@ export type CreateProjectPayload = {
 }
 
 export async function createProject(payload: any, token?: string) {
+const headers: HeadersInit = { 'Content-Type': 'application/json' }
+
+  if (token) {
+    const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
+    headers['Authorization'] = `Bearer ${cleaned}`
+  }
+
   const res = await fetch(`${BASE}/projects`, {
     method: 'POST',
     headers: {
