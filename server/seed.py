@@ -158,6 +158,37 @@ def seed_merchandise():
 
     db.session.commit()
 
+def seed_orders():
+    users = User.query.all()
+    merch = Merchandise.query.all()
+
+    for _ in range(5):
+        user = random.choice(users)
+        order = Order(
+            user_id=user.id,
+            total_amount=0,
+            status="completed",
+        )
+        db.session.add(order)
+        db.session.commit()
+
+        total = 0
+        for item in random.sample(merch, k=2):
+            qty = random.randint(1, 3)
+            total += float(item.price) * qty
+
+            db.session.add(
+                OrderMerchandise(
+                    order_id=order.id,
+                    merchandise_id=item.id,
+                    quantity=qty,
+                    price_at_purchase=item.price,
+                )
+            )
+
+        order.total_amount = total
+        db.session.commit()
+
 
 if __name__ == "__main__":
     with app.app_context():
@@ -178,3 +209,8 @@ if __name__ == "__main__":
 
         print("Seed merchandise")
         seed_merchandise()
+
+        print("Seed orders")
+        seed_orders()
+
+        print("Database seeded successfully")
