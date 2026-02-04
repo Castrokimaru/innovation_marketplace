@@ -187,9 +187,11 @@ export default function SubmitProjectPage() {
                 <p className="text-xs text-muted-foreground">Parsed: {techPreview.join(' • ')}</p>
                   )}
                 </div>
-              ))}
-              <Button type="button" variant="outline" onClick={handleAddTeamMember}>
-                <Plus className="h-4 w-4 mr-2" /> Add Team Member
+              
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting…' : 'Submit Project'}
               </Button>
             </Card>
 
