@@ -109,35 +109,8 @@ export function ProjectCard({
         {/* Actions pinned to bottom */}
         <div className="mt-auto pt-4">
           <div className="grid grid-cols-3 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="bg-transparent hover:bg-primary hover:text-white"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                // TODO: save action
-              }}
-            >
-              <Heart className="mr-2 h-4 w-4" />
-              Save
-            </Button>
+            
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="bg-transparent hover:bg-primary hover:text-white"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                // TODO: contact action
-              }}
-            >
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Contact
-            </Button>
 
             <Button
               type="button"
@@ -146,7 +119,7 @@ export function ProjectCard({
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // Optional: navigate manually if you want view button to open
+                
                 window.location.href = `/projects/${id}`
               }}
             >
