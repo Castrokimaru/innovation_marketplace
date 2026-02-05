@@ -145,7 +145,7 @@ export default function SignInClient() {
           <Label htmlFor="email" className="text-sm font-medium">
             Email Address
           </Label>
-          <div className="relative">
+          <div className="relative" suppressHydrationWarning>
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="email"
@@ -170,7 +170,7 @@ export default function SignInClient() {
               Forgot password?
             </Link>
           </div>
-          <div className="relative">
+          <div className="relative" suppressHydrationWarning>
             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="password"
