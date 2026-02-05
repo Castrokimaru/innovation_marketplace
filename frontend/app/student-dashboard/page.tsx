@@ -144,9 +144,10 @@ export default function StudentDashboard() {
   const handleSignOut = async () => {
     try {
       setSigningOut(true)
-      await signOut({ redirect: false })
-      router.replace('/auth/signin')
-      router.refresh()
+      await signOut({
+        redirect: true,
+        callbackUrl: '/', 
+      })
     } finally {
       setSigningOut(false)
     }
