@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Heart, Share2, Github, Globe, Calendar, Users } from 'lucide-react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { PROJECTS } from '@/lib/projects'
 
 export default function ProjectDetailPage() {
   const params = useParams()
   const projectId = params.id
+  const [isLiked, setIsLiked] = useState(false)
 
   interface Project {
     id: number
@@ -86,16 +88,15 @@ export default function ProjectDetailPage() {
                   💻
                 </div>
                 <div className="space-y-3">
-                  <Button className="w-full bg-primary hover:bg-primary/90">
-                    <Heart className="mr-2 h-4 w-4" />
-                    Save Project
-                  </Button>
+                  <button
+                    onClick={() => setIsLiked(!isLiked)}
+                    className="w-full flex justify-center items-center p-2 rounded-md hover:bg-muted/50 transition-colors"
+                  >
+                    <Heart className={`h-6 w-6 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                  </button>
                   <Button variant="outline" className="w-full bg-transparent">
                     <Share2 className="mr-2 h-4 w-4" />
                     Share
-                  </Button>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    Contact Team
                   </Button>
                 </div>
               </Card>
@@ -165,29 +166,9 @@ export default function ProjectDetailPage() {
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    Contact Team
-                  </Button>
                 </Card>
 
-                {/* Stats */}
-                <Card className="p-6 space-y-4">
-                  <h3 className="font-bold text-lg">Project Stats</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-foreground/60">Views</span>
-                      <span className="font-bold">{project.views}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-foreground/60">Rating</span>
-                      <span className="font-bold">⭐ {project.rating}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-foreground/60">Reviews</span>
-                      <span className="font-bold">{project.reviews}</span>
-                    </div>
-                  </div>
-                </Card>
+
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Heart, MessageCircle, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 interface ProjectCardProps {
   id: number
@@ -29,6 +30,8 @@ export function ProjectCard({
   views = 0,
   rating = 0,
 }: ProjectCardProps) {
+  const [isLiked, setIsLiked] = useState(false)
+
   const techs = Array.isArray(technologies)
     ? technologies
     : typeof technologies === 'string'
@@ -132,11 +135,10 @@ export function ProjectCard({
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // TODO: contact action
+                // TODO: hire team action
               }}
             >
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Contact
+              Hire Team
             </Button>
 
             <Button

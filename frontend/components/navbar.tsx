@@ -48,9 +48,11 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/auth/signin">
-              <Button variant="outline">Sign In</Button>
-            </Link>
+            {!session && (
+              <Link href="/auth/signin">
+                <Button variant="outline">Sign In</Button>
+              </Link>
+            )}
 
             <Link href="/cart" className="relative">
               <Button variant="outline" size="icon">
