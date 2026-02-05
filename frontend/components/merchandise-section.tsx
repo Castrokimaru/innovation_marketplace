@@ -38,7 +38,7 @@ const MERCHANDISE = [
 
 export function MerchandiseSection() {
   return (
-    <section className="py-16 md:py-24 bg-muted/30">
+    <section className="py-16 md:py-24 bg-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="space-y-3">
@@ -51,7 +51,8 @@ export function MerchandiseSection() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {MERCHANDISE.map((item) => (
               <Card key={item.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-                 <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+                
+                <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
                   <img
                     src={item.image}
                     alt={item.name}
