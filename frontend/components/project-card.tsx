@@ -104,7 +104,7 @@ export function ProjectCard({
               {views}
             </span>
             <span className="flex items-center gap-1">
-              ⭐ {Number.isFinite(rating) ? rating.toFixed(1) : '0.0'}
+               {Number.isFinite(rating) ? rating.toFixed(1) : '0.0'}
             </span>
           </div>
         </div>
