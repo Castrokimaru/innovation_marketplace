@@ -5,18 +5,13 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 from models import db
-<<<<<<< HEAD
 import os
 
-=======
-
-from resources.admin import AdminUserList
->>>>>>> 2ffbd49 (endpoint for viewing all users)
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList
 from resources.merchandise import MerchandiseList, MerchandiseItem
 from resources.orders import OrderCreate, OrderDelete
-from resources.admin import CategoryCreate, ApproveProject, RejectProject
+from resources.admin import CategoryCreate, ApproveProject, RejectProject, AdminUserList
 from resources.recruiters import BrowseProjects
 
 def create_app():
