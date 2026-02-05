@@ -16,18 +16,22 @@ export function Footer() {
     }
   }
   return (
-    <footer className="bg-foreground/5 border-t border-border">
+    <footer className="bg-muted/50 border-t">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="py-12 grid gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="font-bold text-lg">Moringa Innovation</h3>
-            <p className="text-sm text-foreground/60">
+            <h3 className="font-bold text-xl text-primary">Moringa Innovation</h3>
+            <p className="text-sm text-foreground/60 leading-relaxed">
               Turning student ideas into market realities through innovation and entrepreneurship.
             </p>
+            <p className="text-xs text-foreground/50">
+              Built by students. Trusted by innovators.
+            </p>
+
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-semibold">Platform</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-wide text-foreground/80">Platform</h4>
             <ul className="space-y-2 text-sm">
               <li>
                  <Link href={session ? "/projects" : "#"} onClick={handleAuthenticatedClick("/projects")} className="text-foreground/60 hover:text-foreground transition">
@@ -89,19 +93,20 @@ export function Footer() {
 
         <Separator className="my-8" />
 
-        <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-foreground/60">
-          <p>&copy; 2024 Moringa School Innovation Marketplace. All rights reserved.</p>
+       <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-foreground/50">
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-foreground transition">
+            <Link href="#" className="hover:text-foreground transition-colors">
               Twitter
             </Link>
-            <Link href="#" className="hover:text-foreground transition">
+            <Link href="#" className="hover:text-foreground transition-colors">
               LinkedIn
             </Link>
-            <Link href="#" className="hover:text-foreground transition">
+            <Link href="#" className="hover:text-foreground transition-colors">
               GitHub
             </Link>
+            
           </div>
+          
         </div>
       </div>
     </footer>
