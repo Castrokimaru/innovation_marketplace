@@ -111,23 +111,27 @@ export function ProjectCard({
 
         {/* Actions pinned to bottom */}
         <div className="mt-auto pt-4">
-          <div className="flex justify-between items-center gap-2">
-            <button
+          <div className="grid grid-cols-3 gap-2">
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
+              className="bg-transparent hover:bg-primary hover:text-white"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                setIsLiked(!isLiked)
+                // TODO: save action
               }}
-              className="flex items-center justify-center p-2 rounded-md hover:bg-muted/50 transition-colors"
             >
-              <Heart className={`h-5 w-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
-            </button>
+              <Heart className="mr-2 h-4 w-4" />
+              Save
+            </Button>
 
             <Button
               type="button"
+              variant="outline"
               size="sm"
-              className="bg-primary text-white hover:bg-primary/90 flex-1"
+              className="bg-transparent hover:bg-primary hover:text-white"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -135,6 +139,21 @@ export function ProjectCard({
               }}
             >
               Hire Team
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              className="bg-primary text-white hover:bg-primary/90"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                // Optional: navigate manually if you want view button to open
+                window.location.href = `/projects/${id}`
+              }}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              View
             </Button>
           </div>
         </div>
