@@ -22,39 +22,28 @@ import {
 } from 'recharts'
 import { Download, Calendar } from 'lucide-react'
 
-const monthlyData = [
-  { month: 'Jan', projects: 24, revenue: 2400, users: 124 },
-  { month: 'Feb', projects: 34, revenue: 2210, users: 145 },
-  { month: 'Mar', projects: 28, revenue: 2290, users: 156 },
-  { month: 'Apr', projects: 45, revenue: 2000, users: 189 },
-  { month: 'May', projects: 52, revenue: 2181, users: 215 },
-  { month: 'Jun', projects: 48, revenue: 2500, users: 198 },
-  { month: 'Jul', projects: 61, revenue: 2100, users: 242 },
-  { month: 'Aug', projects: 55, revenue: 2090, users: 268 },
-]
+import { fetchProjects, type BackendProject } from '@/lib/api/projects'
+import { fetchAdminUsers, type AdminUser } from '@/lib/api/admin-users'
 
-const categoryData = [
-  { name: 'Web Development', value: 156, color: '#8b5cf6' },
-  { name: 'AI/ML', value: 142, color: '#06b6d4' },
-  { name: 'Mobile Apps', value: 98, color: '#10b981' },
-  { name: 'Blockchain', value: 67, color: '#f59e0b' },
-  { name: 'Other', value: 45, color: '#ef4444' },
-]
+function monthKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
 
-const conversionData = [
-  { stage: 'Visitors', count: 8745 },
-  { stage: 'Browse', count: 5432 },
-  { stage: 'View Project', count: 3890 },
-  { stage: 'Like/Share', count: 2156 },
-  { stage: 'Contact', count: 890 },
-]
+function monthLabel(key: string) {
+  const [y, m] = key.split('-')
+  const date = new Date(Number(y), Number(m) - 1, 1)
+  return date.toLocaleString(undefined, { month: 'short' })
+}
 
-const trafficSources = [
-  { source: 'Direct', percentage: 35, users: 2100 },
-  { source: 'Google', percentage: 28, users: 1680 },
-  { source: 'Social Media', percentage: 22, users: 1320 },
-  { source: 'Referral', percentage: 15, users: 900 },
-]
+function safeDate(s: string) {
+  const d = new Date(s)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+type MonthlyPoint = { month: string; projects: number; users: number; revenue: number }
+type CategoryPoint = { name: string; value: number; color: string }
+
+const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#64748b', '#22c55e', '#a855f7']
 
 export default function Analytics() {
   return (
