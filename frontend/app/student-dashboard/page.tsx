@@ -215,7 +215,7 @@ export default function StudentDashboard() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link href="/dashboard/profile">
+            <Link href="/student-dashboard/profile">
               <Button variant="outline">Edit Profile</Button>
             </Link>
 
