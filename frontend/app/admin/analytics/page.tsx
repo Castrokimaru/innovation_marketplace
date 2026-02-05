@@ -179,14 +179,21 @@ const { data: session, status } = useSession()
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Analytics & Reports</h1>
-          <p className="mt-2 text-muted-foreground">Platform performance and user insights</p>
+          <p className="mt-2 text-muted-foreground">
+            Derived from backend data (projects + users). Revenue/traffic/conversion need backend support.
+</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="gap-2 bg-transparent">
             <Calendar className="h-4 w-4" />
-            Last 30 Days
+            Last 8 Months
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+          <Button
+variant="outline"
+size="sm"
+className="gap-2 bg-transparent"
+            onClick={() => alert('Export not implemented yet')}
+>
             <Download className="h-4 w-4" />
             Export Report
           </Button>
