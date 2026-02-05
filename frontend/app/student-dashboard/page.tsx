@@ -1,21 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-
+import Link from 'next/link'
+import { Plus, Search, RefreshCcw, LogOut } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-
-import Link from 'next/link'
-import { Plus, Search, RefreshCcw, LogOut } from 'lucide-react'
-
-import { fetchMyProjectsFromAllProjects } from '@/lib/api'
+import { fetchMyProjectsFromAllProjects } from '@/lib/api' 
 import { ProjectCard } from '@/components/project-card'
 
 type ApiProject = {
@@ -79,7 +74,6 @@ function LoadingShell() {
 
 export default function StudentDashboard() {
   const { data: session, status } = useSession()
-  const router = useRouter()
 
   const [projects, setProjects] = useState<ApiProject[]>([])
   const [loadingProjects, setLoadingProjects] = useState(true)
@@ -88,66 +82,41 @@ export default function StudentDashboard() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<CategoryFilter>('All')
   const [tech, setTech] = useState('All')
-
   const [signingOut, setSigningOut] = useState(false)
 
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session || session.user.role !== 'student') {
-      router.replace('/auth/signin')
-    }
-  }, [session, status, router])
-
   const token = session?.accessToken
-  const userId = session?.user?.id
+  const username = session?.user?.username ?? 'Student'
 
-  const loadProjects = async () => {
-    if (!userId) return
+  const uid = useMemo(() => {
+    const n = Number(session?.user?.id)
+    return Number.isFinite(n) ? n : null
+  }, [session?.user?.id])
+
+  const loadProjects = useCallback(async () => {
+    if (uid == null || !token) return
+
     setLoadingProjects(true)
     setError(null)
 
     try {
-      const mine = await fetchMyProjectsFromAllProjects(userId, token)
+      const mine = await fetchMyProjectsFromAllProjects(uid, token)
       setProjects(Array.isArray(mine) ? mine : [])
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load projects')
     } finally {
       setLoadingProjects(false)
     }
-  }
+  }, [uid, token])
 
   useEffect(() => {
-    if (!session || session.user.role !== 'student') return
-
-    let alive = true
-    ;(async () => {
-      try {
-        setLoadingProjects(true)
-        setError(null)
-        const mine = await fetchMyProjectsFromAllProjects(userId!, token)
-        if (!alive) return
-        setProjects(Array.isArray(mine) ? mine : [])
-      } catch (e: any) {
-        if (!alive) return
-        setError(e?.message ?? 'Failed to load projects')
-      } finally {
-        if (!alive) return
-        setLoadingProjects(false)
-      }
-    })()
-
-    return () => {
-      alive = false
-    }
-  }, [session, token, userId])
+    if (status !== 'authenticated') return
+    loadProjects()
+  }, [status, loadProjects])
 
   const handleSignOut = async () => {
     try {
       setSigningOut(true)
-      await signOut({
-        redirect: true,
-        callbackUrl: '/', 
-      })
+      await signOut({ redirect: true, callbackUrl: '/' })
     } finally {
       setSigningOut(false)
     }
@@ -183,7 +152,6 @@ export default function StudentDashboard() {
   }, [projects, query, category, tech])
 
   const cards: UiProjectCard[] = useMemo(() => {
-    const username = session?.user?.username ?? 'Student'
     return filtered.map((p) => ({
       id: p.id,
       title: p.title,
@@ -195,10 +163,9 @@ export default function StudentDashboard() {
       rating: 0,
       image: undefined,
     }))
-  }, [filtered, session?.user?.username])
+  }, [filtered, username])
 
-  if (status === 'loading') return <LoadingShell />
-  if (!session || session.user.role !== 'student') return null
+  if (status === 'loading' || !session) return <LoadingShell />
 
   return (
     <div className="min-h-screen">
@@ -210,7 +177,7 @@ export default function StudentDashboard() {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Student Dashboard</h1>
             <p className="text-foreground/70">
-              Welcome, <span className="font-medium text-primary">{session.user.username}</span>.
+              Welcome, <span className="font-medium text-primary">{username}</span>.
             </p>
           </div>
 
@@ -285,7 +252,7 @@ export default function StudentDashboard() {
 
         {/* Error */}
         {error && (
-          <Card className="mt-6 p-5 border border-destructive/30">
+          <Card className="mt-6 border border-destructive/30 p-5">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="font-semibold text-destructive">Couldn’t load projects</p>
