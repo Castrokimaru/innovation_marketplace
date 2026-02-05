@@ -54,3 +54,10 @@ class MerchandiseItem(Resource):
 
         db.session.commit()
         return {"message": "Merchandise updated"}, 200
+    
+    @jwt_required()
+    def delete(self, id):
+        item = Merchandise.query.get_or_404(id)
+        db.session.delete(item)
+        db.session.commit()
+        return {"message": "Merchandise deleted"}, 200

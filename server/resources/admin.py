@@ -61,3 +61,27 @@ class RejectProject(Resource):
         project.status = "rejected"
         db.session.commit()
         return {"message": f"Project '{project.title}' rejected"}, 200
+
+class AdminUserList(Resource):
+    @jwt_required()
+    def get(self):
+        current_user_id = get_jwt_identity()
+        current_user = User.query.get(current_user_id)
+
+        if not current_user or current_user.role.name != "admin":
+            return {"error": "Admin access required"}, 403
+
+        users = User.query.all()
+
+        return [
+            {
+                "id": u.id,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
+                "email": u.email,
+                "role": u.role.name,
+                "status": u.status,
+                "created_at": u.created_at.isoformat()
+            }
+            for u in users
+        ], 200
