@@ -132,3 +132,31 @@ export async function fetchApprovedProjects() {
   return res.json()
 }
 
+export type UpdateProfilePayload = {
+  first_name?: string
+  last_name?: string
+  password?: string
+}
+
+export async function updateProfile(payload: UpdateProfilePayload, token?: string) {
+  const res = await fetch(`${BASE}/profile`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const data = await res.json().catch(() => ({}))
+
+  if (!res.ok) {
+    throw new Error(data.error || data.message || 'Failed to update profile')
+  }
+
+  // backend returns: { message, user: { id, first_name, last_name, email } }
+  return data as {
+    message: string
+    user: { id: number; first_name: string; last_name: string; email: string }
+  }
+}
