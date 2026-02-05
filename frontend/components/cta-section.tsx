@@ -52,18 +52,18 @@ export function CTASection() {
             <Button 
               size="lg" 
               className="w-full sm:w-auto bg-primary hover:bg-primary/90"
-              onClick={handleSubmitProject}
+              onClick={() => router.push('/projects')}
             >
-              Submit Your Project
+              Explore Projects
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               className="w-full sm:w-auto bg-transparent"
-              onClick={handleBecomeRecruiter}
+              onClick={() => router.push('./auth/signin')}
             >
-              Become a Recruiter
+              Join as Student or Recruiter
             </Button>
           </div>
 
