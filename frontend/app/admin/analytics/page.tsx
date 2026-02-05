@@ -46,6 +46,134 @@ type CategoryPoint = { name: string; value: number; color: string }
 const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#64748b', '#22c55e', '#a855f7']
 
 export default function Analytics() {
+const { data: session, status } = useSession()
+  const token = session?.accessToken
+
+  const [projects, setProjects] = useState<BackendProject[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const [p, u] = await Promise.all([
+          fetchProjects(),
+          // admin users require JWT; if not logged in as admin, skip gracefully
+          token ? fetchAdminUsers(token) : Promise.resolve([] as AdminUser[]),
+        ])
+
+        setProjects(p)
+        setUsers(u)
+      } catch (e: any) {
+        setError(e?.message ?? 'Failed to load analytics data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (status === 'loading') return
+    run()
+  }, [status, token])
+
+  // --- Derived analytics from YOUR backend data ---
+  const monthlyData: MonthlyPoint[] = useMemo(() => {
+    // last 8 months buckets based on current date
+    const now = new Date()
+    const keys: string[] = []
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      keys.push(monthKey(d))
+    }
+
+    const projCounts = new Map<string, number>()
+    const userCounts = new Map<string, number>()
+
+    for (const p of projects) {
+      const d = safeDate(p.created_at)
+      if (!d) continue
+      const k = monthKey(d)
+      projCounts.set(k, (projCounts.get(k) ?? 0) + 1)
+    }
+
+    for (const u of users) {
+      const d = safeDate(u.created_at)
+      if (!d) continue
+      const k = monthKey(d)
+      userCounts.set(k, (userCounts.get(k) ?? 0) + 1)
+    }
+
+    // revenue is not in your backend → keep 0 (or mocked)
+    return keys.map((k) => ({
+      month: monthLabel(k),
+      projects: projCounts.get(k) ?? 0,
+      users: userCounts.get(k) ?? 0,
+      revenue: 0,
+    }))
+  }, [projects, users])
+
+  const categoryData: CategoryPoint[] = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    for (const p of projects) {
+      const cats = p.categories?.length ? p.categories : [{ id: -1, name: 'Other' }]
+      for (const c of cats) {
+        const name = c?.name ?? 'Other'
+        counts.set(name, (counts.get(name) ?? 0) + 1)
+      }
+    }
+
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1])
+
+    return sorted.map(([name, value], idx) => ({
+      name,
+      value,
+      color: COLORS[idx % COLORS.length],
+    }))
+  }, [projects])
+
+  // Top performing projects: backend doesn't have views/engagement/rating/reach.
+  // We'll rank by team size (as a proxy) and show "team members" instead.
+  const topProjects = useMemo(() => {
+    return [...projects]
+      .sort((a, b) => (b.team_members?.length ?? 0) - (a.team_members?.length ?? 0))
+      .slice(0, 5)
+      .map((p) => ({
+        title: p.title,
+        team: p.team_members?.length ?? 0,
+        status: p.status,
+        submitted: p.created_at?.slice(0, 10) ?? '',
+      }))
+  }, [projects])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Analytics & Reports</h1>
+          <p className="mt-2 text-muted-foreground">Loading…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Analytics & Reports</h1>
+          <p className="mt-2 text-destructive">{error}</p>
+        </div>
+        <Button variant="outline" onClick={() => location.reload()}>
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
