@@ -17,10 +17,10 @@ export default function Home({session}:any) {
       <main className="overflow-hidden">
         <Hero />
         <FeaturedProjects />
-        <MerchandiseSection/>
         <HowItWorks />
         <WhyChooseUs />
         <CTASection />
+        <MerchandiseSection/>
       </main>
       <Footer />
     </div>
