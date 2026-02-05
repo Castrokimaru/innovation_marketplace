@@ -48,10 +48,7 @@ export function Hero() {
                   Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              {/* <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-black">
-                Learn More
-              </Button> */}
-            </div>
+              </div>
           </div>
           <div className="relative">
               <div className="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden relative">
