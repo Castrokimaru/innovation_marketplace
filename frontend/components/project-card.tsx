@@ -106,20 +106,17 @@ export function ProjectCard({
           </div>
         </div>
 
-        {/* Actions pinned to bottom */}
+      
         <div className="mt-auto pt-4">
-          <div className="grid grid-cols-3 gap-2">
-            
-
-
+          
+          <div className="mt-auto pt-4 flex justify-center">
             <Button
               type="button"
               size="sm"
-              className="bg-primary text-white hover:bg-primary/90"
+              className="w-1/2 bg-primary text-white hover:bg-primary/90"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                
                 window.location.href = `/projects/${id}`
               }}
             >
@@ -127,6 +124,7 @@ export function ProjectCard({
               View
             </Button>
           </div>
+
         </div>
       </div>
     </Card>
