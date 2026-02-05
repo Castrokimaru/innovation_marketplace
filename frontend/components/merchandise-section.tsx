@@ -51,9 +51,15 @@ export function MerchandiseSection() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {MERCHANDISE.map((item) => (
               <Card key={item.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                 <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors" />
                 </div>
+
                 <div className="p-6 space-y-4">
                   <div className="space-y-1">
                     <h3 className="font-semibold text-lg">{item.name}</h3>
