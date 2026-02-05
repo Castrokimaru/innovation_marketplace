@@ -312,9 +312,7 @@ export default function StudentDashboard() {
           ) : cards.length === 0 ? (
             <Card className="mt-6 p-10 text-center">
               <p className="text-lg font-semibold">No projects found</p>
-              <p className="mt-2 text-sm text-foreground/70">
-                Submit your first project to showcase your work.
-              </p>
+              <p className="mt-2 text-sm text-foreground/70">Submit your first project to showcase your work.</p>
               <Link href="/submit-project">
                 <Button className="mt-5">
                   <Plus className="mr-2 h-4 w-4" />
