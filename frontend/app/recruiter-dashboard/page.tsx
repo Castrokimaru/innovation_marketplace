@@ -68,7 +68,7 @@ export default function RecruiterDashboard() {
   useEffect(() => {
     if (status === 'loading') return
     if (!session || session.user.role !== 'recruiter') {
-      router.replace('/auth/signin')
+      router.replace('/')
     }
   }, [session, status, router])
 
@@ -114,7 +114,7 @@ export default function RecruiterDashboard() {
     try {
       setSigningOut(true)
       await signOut({ redirect: false })
-      router.replace('/auth/signin')
+      router.replace('/')
       router.refresh()
     } finally {
       setSigningOut(false)
