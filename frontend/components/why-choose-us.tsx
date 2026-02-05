@@ -4,58 +4,77 @@ import { Shield, Clock, DollarSign, BookOpen, Award, Smartphone } from 'lucide-r
 
 export function WhyChooseUs() {
   const features = [
-    {
-      title: 'Secure Platform',
-      description: 'Your data and projects are protected with enterprise-grade security.',
-      icon: Shield,
-    },
-    {
-      title: 'Quick Connections',
-      description: 'Find opportunities and talent within hours, not weeks.',
-      icon: Clock,
-    },
-    {
-      title: 'Free to Start',
-      description: 'No upfront costs to join and showcase your innovations.',
-      icon: DollarSign,
-    },
-    {
-      title: 'Learning Resources',
-      description: 'Access mentorship and training to accelerate your growth.',
-      icon: BookOpen,
-    },
-    {
-      title: 'Recognition',
-      description: 'Get featured and recognized for your innovative work.',
-      icon: Award,
-    },
-    {
-      title: 'Easy Access',
-      description: 'Mobile-friendly platform accessible anywhere, anytime.',
-      icon: Smartphone,
-    },
-  ]
+  {
+    title: 'Fast Connections',
+    description: 'Connect with recruiters and collaborators in hours, not weeks.',
+    icon: Clock,
+  },
+  {
+    title: 'Secure Platform',
+    description: 'Enterprise-grade security for your data and intellectual work.',
+    icon: Shield,
+  },
+  {
+    title: 'Free to Start',
+    description: 'No upfront costs to showcase projects or explore talent.',
+    icon: DollarSign,
+  },
+]
+
 
   return (
-    <section className="py-20 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-70"></div>
-      <div className="absolute inset-0 backdrop-blur-sm"></div>
-      <div className="absolute inset-0 bg-white/20"></div>
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-black mb-4">Why Choose Our Marketplace?</h2>
-          <p className="text-xl text-gray-800 max-w-2xl mx-auto">
-            Designed for students and recruiters to foster innovation and career growth.
+    <section className="py-28 bg-primary/5">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
+       
+        <div className="text-center mb-20">
+          <h2 className="text-4xl font-bold mb-4">
+            Why Choose Our Marketplace
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Built to help students turn ideas into opportunities — faster, safer, and without barriers.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <div className="grid gap-8 md:grid-cols-3">
           {features.map((feature, index) => (
-            <div key={index} className="text-center p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <feature.icon className="h-6 w-6 text-white" />
+            <div
+              key={index}
+              className="
+                group relative rounded-2xl p-8
+                bg-background/70 backdrop-blur
+                shadow-sm
+                transition-all duration-300
+                hover:-translate-y-1
+                hover:shadow-xl
+                hover:shadow-primary/20
+              "
+            >
+              
+              <div className="
+                mb-6 flex h-14 w-14 items-center justify-center
+                rounded-xl bg-primary/10
+                text-primary
+                transition-colors
+                group-hover:bg-primary group-hover:text-white
+              ">
+                <feature.icon className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-semibold text-black mb-2">{feature.title}</h3>
-              <p className="text-gray-800">{feature.description}</p>
+
+              <h3 className="text-xl font-semibold mb-2">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {feature.description}
+              </p>
+
+              
+              <span className="
+                pointer-events-none absolute inset-0 rounded-2xl
+                ring-1 ring-transparent
+                group-hover:ring-primary/30
+                transition
+              " />
             </div>
           ))}
         </div>
