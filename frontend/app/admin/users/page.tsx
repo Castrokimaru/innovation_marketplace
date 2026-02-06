@@ -29,7 +29,35 @@ const getStatusBadge = (status: string) => {
 const getTypeBadge = (type: string) => {
   return type === 'Student'
     ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
-    : 'bg-purple-500/10 text-purple-700 dark:text-purple-400'
+    : type === 'Recruiter'
+      ? 'bg-purple-500/10 text-purple-700 dark:text-purple-400'
+: type === 'Admin'
+        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+        : 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
+}
+
+function mapUser(u: AdminUser): UserRow {
+  const fullName = `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim() || u.email
+
+  // Normalize role -> UI "type"
+  const role = (u.role ?? '').toLowerCase()
+  const type: UserRow['type'] =
+    role === 'student' ? 'Student' :
+    role === 'recruiter' ? 'Recruiter' :
+    role === 'admin' ? 'Admin' :
+    'Other'
+
+  const joined = (u.created_at ?? '').slice(0, 10)
+
+  return {
+    id: u.id,
+    name: fullName,
+    email: u.email,
+    type,
+    status: u.status ?? 'active',
+    projects: 0, // not provided by /admin/users currently
+    joined,
+  }
 }
 
 export default function UsersManagement() {
