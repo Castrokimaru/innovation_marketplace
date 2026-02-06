@@ -104,51 +104,22 @@ export function ProjectCard({
               {views}
             </span>
             <span className="flex items-center gap-1">
-              ⭐ {Number.isFinite(rating) ? rating.toFixed(1) : '0.0'}
+               {Number.isFinite(rating) ? rating.toFixed(1) : '0.0'}
             </span>
           </div>
         </div>
 
-        {/* Actions pinned to bottom */}
+      
         <div className="mt-auto pt-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="bg-transparent hover:bg-primary hover:text-white"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                // TODO: save action
-              }}
-            >
-              <Heart className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="bg-transparent hover:bg-primary hover:text-white"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                // TODO: hire team action
-              }}
-            >
-              Hire Team
-            </Button>
-
+          
+          <div className="mt-auto pt-4 flex justify-center">
             <Button
               type="button"
               size="sm"
-              className="bg-primary text-white hover:bg-primary/90"
+              className="w-1/2 bg-primary text-white hover:bg-primary/90"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // Optional: navigate manually if you want view button to open
                 window.location.href = `/projects/${id}`
               }}
             >
@@ -156,6 +127,7 @@ export function ProjectCard({
               View
             </Button>
           </div>
+
         </div>
       </div>
     </Card>
