@@ -1,5 +1,8 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'next/navigation'
+
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
