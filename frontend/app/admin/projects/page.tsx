@@ -75,6 +75,34 @@ export default function ProjectsManagement() {
     const matchesFilter = filterStatus === 'all' || project.status === filterStatus
     return matchesSearch && matchesFilter
   })
+}, [projects, searchTerm, filterStatus])
+
+  // Needs NextAuth session to include the JWT used by Flask
+  const token = (session as any)?.accessToken as string | undefined
+  const isAdmin = (session as any)?.user?.role === 'admin'
+
+  async function onApprove(id: number) {
+    if (!token) return setError('Missing token (not authenticated)')
+    try {
+      // optimistic update
+      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'approved' } : p)))
+      await approveProject(id, token)
+    } catch (e: any) {
+      setError(e?.message ?? 'Approve failed')
+      await load() // revert by reloading
+    }
+  }
+
+  async function onReject(id: number) {
+    if (!token) return setError('Missing token (not authenticated)')
+    try {
+      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'rejected' } : p)))
+      await rejectProject(id, token)
+    } catch (e: any) {
+      setError(e?.message ?? 'Reject failed')
+      await load()
+    }
+  }
 
   return (
     <div className="space-y-6">
