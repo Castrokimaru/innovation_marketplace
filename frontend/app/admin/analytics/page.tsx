@@ -46,7 +46,7 @@ type CategoryPoint = { name: string; value: number; color: string }
 const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#64748b', '#22c55e', '#a855f7']
 
 export default function Analytics() {
-const { data: session, status } = useSession()
+  const { data: session, status } = useSession()
   const token = session?.accessToken
 
   const [projects, setProjects] = useState<BackendProject[]>([])
@@ -181,7 +181,7 @@ const { data: session, status } = useSession()
           <h1 className="text-3xl font-bold text-foreground">Analytics & Reports</h1>
           <p className="mt-2 text-muted-foreground">
             Derived from backend data (projects + users). Revenue/traffic/conversion need backend support.
-</p>
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="gap-2 bg-transparent">
@@ -189,11 +189,11 @@ const { data: session, status } = useSession()
             Last 8 Months
           </Button>
           <Button
-variant="outline"
-size="sm"
-className="gap-2 bg-transparent"
+            variant="outline"
+            size="sm"
+            className="gap-2 bg-transparent"
             onClick={() => alert('Export not implemented yet')}
->
+          >
             <Download className="h-4 w-4" />
             Export Report
           </Button>
@@ -224,9 +224,9 @@ className="gap-2 bg-transparent"
 
       {/* Revenue and Category Distribution */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Revenue Chart */}
+        {/* Revenue Chart (no backend yet -> 0) */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Monthly Revenue</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Monthly Revenue (needs backend)</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -274,107 +274,48 @@ className="gap-2 bg-transparent"
         </Card>
       </div>
 
-      {/* Conversion Funnel */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Conversion Funnel</h3>
-        <div className="space-y-4">
-          {conversionData.map((stage, index) => {
-            const percentage = (stage.count / conversionData[0].count) * 100
-            return (
-              <div key={index}>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-foreground">{stage.stage}</p>
-                  <p className="text-sm text-muted-foreground">{stage.count.toLocaleString()} ({percentage.toFixed(0)}%)</p>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </Card>
-
-      {/* Traffic Sources & Category Breakdown */}
+      {/* Conversion/Traffic sections: keep but label as mocked */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Traffic Sources */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Traffic Sources</h3>
-          <div className="space-y-4">
-            {trafficSources.map((source, index) => (
-              <div key={index}>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-foreground">{source.source}</p>
-                  <p className="text-sm text-muted-foreground">{source.users.toLocaleString()} users ({source.percentage}%)</p>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full"
-                    style={{ width: `${source.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Conversion Funnel (mock)</h3>
+          <p className="text-sm text-muted-foreground">Not available from backend yet.</p>
         </Card>
 
-        {/* Category Stats */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Top Categories</h3>
-          <div className="space-y-3">
-            {categoryData.map((category, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: category.color }}
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{category.name}</p>
-                </div>
-                <p className="text-sm font-semibold text-foreground">{category.value}</p>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Traffic Sources (mock)</h3>
+          <p className="text-sm text-muted-foreground">Not available from backend yet.</p>
         </Card>
       </div>
 
-      {/* Top Performing Projects */}
+      {/* Top Performing Projects (backend-driven proxy) */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Top Performing Projects</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Top Projects (by team size)</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
                 <th className="px-4 py-3 text-left font-medium text-foreground/70">Project</th>
-                <th className="px-4 py-3 text-center font-medium text-foreground/70">Views</th>
-                <th className="px-4 py-3 text-center font-medium text-foreground/70">Engagement</th>
-                <th className="px-4 py-3 text-center font-medium text-foreground/70">Rating</th>
-                <th className="px-4 py-3 text-center font-medium text-foreground/70">Reach</th>
+                <th className="px-4 py-3 text-center font-medium text-foreground/70">Team</th>
+                <th className="px-4 py-3 text-center font-medium text-foreground/70">Status</th>
+                <th className="px-4 py-3 text-center font-medium text-foreground/70">Created</th>
               </tr>
             </thead>
             <tbody>
-              {[
-                { title: 'AI Chat Application', views: 2450, engagement: '42%', rating: '4.8', reach: '12.5K' },
-                { title: 'Social Network Platform', views: 2100, engagement: '38%', rating: '4.6', reach: '11.2K' },
-                { title: 'Mobile Weather App', views: 1890, engagement: '35%', rating: '4.7', reach: '9.8K' },
-                { title: 'E-commerce Platform', views: 1456, engagement: '28%', rating: '4.5', reach: '7.6K' },
-                { title: 'Task Management System', views: 892, engagement: '22%', rating: '4.3', reach: '5.1K' },
-              ].map((project, index) => (
+              {topProjects.map((p, index) => (
                 <tr key={index} className="border-b border-border/50 hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium text-foreground">{project.title}</td>
-                  <td className="px-4 py-3 text-center text-foreground/70">{project.views.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-center text-foreground/70">{project.engagement}</td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">
-                      {project.rating}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center text-foreground/70">{project.reach}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{p.title}</td>
+                  <td className="px-4 py-3 text-center text-foreground/70">{p.team}</td>
+                  <td className="px-4 py-3 text-center text-foreground/70">{p.status}</td>
+                  <td className="px-4 py-3 text-center text-foreground/70">{p.submitted}</td>
                 </tr>
               ))}
+              {topProjects.length === 0 && (
+                <tr>
+                  <td className="px-4 py-10 text-center text-muted-foreground" colSpan={4}>
+                    No projects found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
