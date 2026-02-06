@@ -74,26 +74,70 @@ export default function ProjectDetailPage() {
   const params = useParams()
   const projectId = params.id
   const [isLiked, setIsLiked] = useState(false)
+const [projects, setProjects] = useState<BackendProject[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  interface Project {
-    id: number
-    title: string
-    description: string
-    longDescription: string
-    category: string
-    status: string
-    createdAt: string
-    teamSize: number
-    rating: number
-    reviews: number
-    technologies: string[]
-    liveLink?: string
-    githubLink?: string
-    teamMembers: string[]
-    views: number
+  useEffect(() => {
+    const run = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await fetchAllProjects()
+        setProjects(data)
+      } catch (e: any) {
+        setError(e?.message ?? 'Failed to load project')
+      } finally {
+        setLoading(false)
+      }
+    }
+    run()
+  }, [])
+
+  const project = useMemo(() => {
+    if (!Number.isFinite(projectId)) return undefined
+    return projects.find((p) => p.id === projectId)
+  }, [projects, projectId])
+
+  const technologies = useMemo(() => parseTechnologies(project?.technologies ?? ''), [project?.technologies])
+
+  const categoryLabel = project?.categories?.[0]?.name ?? 'Other'
+  const team = project?.team_members ?? []
+  const teamSize = team.length
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 text-center">
+            <p className="text-foreground/60">Loading project…</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
-  const project: Project | undefined = PROJECTS.find((p) => p.id === parseInt(projectId as string)) as Project | undefined
+  if (error) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 text-center">
+            <h2 className="text-2xl font-bold">Could not load project</h2>
+            <p className="text-foreground/60 mt-2">{error}</p>
+            <div className="mt-6">
+              <Button variant="outline" onClick={() => location.reload()}>
+                Retry
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   if (!project) {
     return (
