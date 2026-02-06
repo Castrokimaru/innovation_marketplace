@@ -8,6 +8,7 @@ import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+
 import { Heart, Share2, Github, Globe, Calendar, Users } from 'lucide-react'
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
@@ -71,10 +72,11 @@ async function fetchAllProjects(): Promise<BackendProject[]> {
 }
 
 export default function ProjectDetailPage() {
-  const params = useParams()
-  const projectId = params.id
+  const params = useParams<{ id: string }>()
+  const projectId = Number(params.id)
+
   const [isLiked, setIsLiked] = useState(false)
-const [projects, setProjects] = useState<BackendProject[]>([])
+  const [projects, setProjects] = useState<BackendProject[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -154,6 +156,10 @@ const [projects, setProjects] = useState<BackendProject[]>([])
     )
   }
 
+  // Optional: derive links from existing fields (since backend does not provide liveLink/githubLink)
+  const liveLink = project.video || undefined // if your "video" is actually a URL; otherwise remove this
+  const githubLink = undefined // add when backend provides it
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -164,25 +170,28 @@ const [projects, setProjects] = useState<BackendProject[]>([])
             <div className="grid gap-8 md:grid-cols-3">
               <div className="md:col-span-2 space-y-4">
                 <div className="inline-flex gap-2">
-                  <Badge className="bg-primary">{project.category}</Badge>
-                  <Badge variant="outline">{project.status}</Badge>
+                  <Badge className="bg-primary">{categoryLabel}</Badge>
+                  <Badge variant="outline" className={getStatusBadgeVariant(project.status)}>
+                    {project.status}
+                  </Badge>
                 </div>
+
                 <h1 className="text-5xl font-bold">{project.title}</h1>
                 <p className="text-xl text-foreground/60">{project.description}</p>
 
                 <div className="flex flex-wrap gap-4 pt-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground/60">
-                      Launched {new Date(project.createdAt).toLocaleDateString()}
-                    </span>
+                    <span className="text-sm text-foreground/60">Submitted {formatDate(project.created_at)}</span>
                   </div>
+
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground/60">{project.teamSize} team members</span>
+                    <span className="text-sm text-foreground/60">{teamSize} team members</span>
                   </div>
+
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-foreground/60">⭐ {project.rating} ({project.reviews} reviews)</span>
+                    <span className="text-sm text-foreground/60">Submitted by {project.submitted_name}</span>
                   </div>
                 </div>
               </div>
@@ -191,16 +200,26 @@ const [projects, setProjects] = useState<BackendProject[]>([])
                 <div className="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center text-6xl">
                   💻
                 </div>
+
                 <div className="space-y-3">
                   <button
                     onClick={() => setIsLiked(!isLiked)}
                     className="w-full flex justify-center items-center p-2 rounded-md hover:bg-muted/50 transition-colors"
+                    aria-label="Like project"
                   >
                     <Heart className={`h-6 w-6 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
                   </button>
-                  <Button variant="outline" className="w-full bg-transparent">
+
+                  <Button
+                    variant="outline"
+                    className="w-full bg-transparent"
+                    onClick={() => {
+                      // simple share: copies current URL
+                      navigator.clipboard?.writeText(window.location.href)
+                    }}
+                  >
                     <Share2 className="mr-2 h-4 w-4" />
-                    Share
+                    Copy Link
                   </Button>
                 </div>
               </Card>
@@ -217,7 +236,7 @@ const [projects, setProjects] = useState<BackendProject[]>([])
                 <div className="space-y-4">
                   <h2 className="text-3xl font-bold">About This Project</h2>
                   <div className="prose prose-invert max-w-none">
-                    <p className="text-foreground/70 whitespace-pre-line">{project.longDescription}</p>
+                    <p className="text-foreground/70 whitespace-pre-line">{project.description}</p>
                   </div>
                 </div>
 
@@ -225,32 +244,42 @@ const [projects, setProjects] = useState<BackendProject[]>([])
                 <div className="space-y-4">
                   <h2 className="text-2xl font-bold">Technologies Used</h2>
                   <div className="flex flex-wrap gap-3">
-                    {project.technologies.map((tech: string) => (
-                      <Badge key={tech} variant="secondary" className="bg-secondary/20">
-                        {tech}
-                      </Badge>
-                    ))} 
+                    {technologies.length > 0 ? (
+                      technologies.map((tech) => (
+                        <Badge key={tech} variant="secondary" className="bg-secondary/20">
+                          {tech}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No technologies listed.</p>
+                    )}
                   </div>
                 </div>
 
-                {/* Links */}
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold">Explore the Project</h2>
-                  <div className="flex gap-4">
-                    <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1">
-                      <Button className="w-full bg-primary hover:bg-primary/90">
-                        <Globe className="mr-2 h-4 w-4" />
-                        View Live Demo
-                      </Button>
-                    </a>
-                    <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex-1">
-                      <Button variant="outline" className="w-full bg-transparent">
-                        <Github className="mr-2 h-4 w-4" />
-                        GitHub Repository
-                      </Button>
-                    </a>
+                {/* Links (only show if you have them) */}
+                {(liveLink || githubLink) && (
+                  <div className="space-y-4">
+                    <h2 className="text-2xl font-bold">Explore the Project</h2>
+                    <div className="flex gap-4">
+                      {liveLink && (
+                        <a href={liveLink} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <Button className="w-full bg-primary hover:bg-primary/90">
+                            <Globe className="mr-2 h-4 w-4" />
+                            View Link
+                          </Button>
+                        </a>
+                      )}
+                      {githubLink && (
+                        <a href={githubLink} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <Button variant="outline" className="w-full bg-transparent">
+                            <Github className="mr-2 h-4 w-4" />
+                            GitHub Repository
+                          </Button>
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Sidebar */}
@@ -258,26 +287,50 @@ const [projects, setProjects] = useState<BackendProject[]>([])
                 {/* Team */}
                 <Card className="p-6 space-y-4">
                   <h3 className="font-bold text-lg">Development Team</h3>
-                  <div className="space-y-3">
-                    {project.teamMembers.map((member: string) => (
-                      <div key={member} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold">
-                          {member.charAt(0)}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{member}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+
+                  {team.length > 0 ? (
+                    <div className="space-y-3">
+                      {team.map((m) => {
+                        const fullName = `${m.first_name} ${m.last_name}`.trim()
+                        return (
+                          <div key={m.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold">
+                              {(m.first_name?.[0] ?? m.email?.[0] ?? '?').toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{fullName || m.email}</p>
+                              <p className="text-xs text-muted-foreground">{m.role}</p>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No team members listed.</p>
+                  )}
                 </Card>
 
-
+                {/* Categories */}
+                <Card className="p-6 space-y-4">
+                  <h3 className="font-bold text-lg">Categories</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {project.categories?.length ? (
+                      project.categories.map((c) => (
+                        <Badge key={c.id} variant="secondary" className="bg-secondary/20">
+                          {c.name}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No categories assigned.</p>
+                    )}
+                  </div>
+                </Card>
               </div>
             </div>
           </div>
         </section>
       </main>
+
       <Footer />
     </div>
   )
