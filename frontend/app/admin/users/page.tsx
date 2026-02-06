@@ -61,16 +61,56 @@ function mapUser(u: AdminUser): UserRow {
 }
 
 export default function UsersManagement() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState('all')
+const { data: session, status } = useSession()
 
-  const filteredUsers = users.filter((user) => {
+  const [rows, setRows] = useState<UserRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState<'all' | 'Student' | 'Recruiter' | 'Admin'>('all')
+
+  const token = session?.accessToken
+
+  async function load() {
+    if (!token) return
+    try {
+      setLoading(true)
+      setError(null)
+      const users = await fetchAdminUsers(token)
+      setRows(users.map(mapUser))
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to load users')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (status === 'loading') return
+    if (!token) {
+      setLoading(false)
+      setError('Not authenticated (missing access token). Please sign in again.')
+      return
+    }
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, token])
+
+  const filteredUsers = useMemo(() => {
+    return rows.filter((u) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterType === 'all' || user.type === filterType
+      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesFilter = filterType === 'all' || u.type === filterType
     return matchesSearch && matchesFilter
   })
+}, [rows, searchTerm, filterType])
+
+  const totalUsers = rows.length
+  const activeUsers = rows.filter((u) => u.status === 'active').length
+  const studentsCount = rows.filter((u) => u.type === 'Student').length
 
   return (
     <div className="space-y-6">
