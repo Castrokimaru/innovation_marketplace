@@ -153,9 +153,34 @@ const { data: session, status } = useSession()
             >
               Recruiters
             </Button>
+<Button
+              variant={filterType === 'Admin' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilterType('Admin')}
+            >
+              Admins
+            </Button>
           </div>
         </div>
       </Card>
+
+      {/* Loading / Error */}
+      {loading && (
+        <Card className="p-6">
+          <p className="text-sm text-muted-foreground">Loading users…</p>
+        </Card>
+      )}
+
+      {!loading && error && (
+        <Card className="p-6">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm text-destructive">{error}</p>
+            <Button variant="outline" onClick={load} disabled={!token}>
+              Retry
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Users Table */}
       <Card className="overflow-hidden">
