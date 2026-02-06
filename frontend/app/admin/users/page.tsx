@@ -1,19 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSession } from 'next-auth/react'
+
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Search,
-  Filter,
-  Shield,
-  Mail,
-  Trash2,
-  MoreVertical,
-  UserCheck,
-  UserX,
-} from 'lucide-react'
+import {   Search,   Mail,   Trash2, Shield,   UserCheck,   UserX } from 'lucide-react'
 
 const users = [
   {
