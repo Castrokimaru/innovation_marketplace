@@ -42,11 +42,33 @@ const getStatusColor = (status: string) => {
 
 export default function ProjectsManagement() {
       const { data: session, status }:any = useSession()
+
+  const [projects, setProjects] = useState<ProjectRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending' | 'rejected'>('all')
 
-  const filteredProjects = projects.filter((project) => {
+  async function load() {
+    try {
+      setLoading(true)
+      setError(null)
+      const rows = await fetchProjects()
+      setProjects(rows)
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to load projects')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => {
     const matchesSearch =
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.author.toLowerCase().includes(searchTerm.toLowerCase())
