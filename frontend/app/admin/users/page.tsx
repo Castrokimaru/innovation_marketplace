@@ -8,80 +8,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {   Search,   Mail,   Trash2, Shield,   UserCheck,   UserX } from 'lucide-react'
 
-const users = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    email: 'sarah@moringa.com',
-    type: 'Student',
-    status: 'active',
-    projects: 3,
-    joined: '2024-09-15',
-  },
-  {
-    id: 2,
-    name: 'Mike Chen',
-    email: 'mike@moringa.com',
-    type: 'Recruiter',
-    status: 'active',
-    projects: 0,
-    joined: '2024-10-22',
-  },
-  {
-    id: 3,
-    name: 'Alex Kipchoge',
-    email: 'alex@moringa.com',
-    type: 'Student',
-    status: 'active',
-    projects: 2,
-    joined: '2024-08-10',
-  },
-  {
-    id: 4,
-    name: 'Emma Williams',
-    email: 'emma@moringa.com',
-    type: 'Student',
-    status: 'inactive',
-    projects: 1,
-    joined: '2024-07-05',
-  },
-  {
-    id: 5,
-    name: 'David Okonkwo',
-    email: 'david@moringa.com',
-    type: 'Recruiter',
-    status: 'active',
-    projects: 0,
-    joined: '2024-11-12',
-  },
-  {
-    id: 6,
-    name: 'Lisa Anderson',
-    email: 'lisa@moringa.com',
-    type: 'Student',
-    status: 'active',
-    projects: 4,
-    joined: '2024-06-20',
-  },
-  {
-    id: 7,
-    name: 'James Wilson',
-    email: 'james@moringa.com',
-    type: 'Recruiter',
-    status: 'active',
-    projects: 0,
-    joined: '2024-12-01',
-  },
-  {
-    id: 8,
-    name: 'Maria Garcia',
-    email: 'maria@moringa.com',
-    type: 'Student',
-    status: 'active',
-    projects: 2,
-    joined: '2024-09-30',
-  },
-]
+import { fetchAdminUsers, type AdminUser } from '@/lib/api/admin-users'
+
+type UserRow =   {
+    id: number
+  name: string
+  email: string
+  type: 'Student' | 'Recruiter' | 'Admin' | 'Other'
+  status: 'active' | 'inactive' | string
+  projects: number // backend doesn't provide this yet, so show 0
+  joined: string
+}
 
 const getStatusBadge = (status: string) => {
   return status === 'active'
