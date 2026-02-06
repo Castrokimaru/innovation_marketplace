@@ -6,12 +6,12 @@ import { useSession } from 'next-auth/react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {   Search,   Mail,   Trash2, Shield,   UserCheck,   UserX } from 'lucide-react'
+import { Search, Mail, Trash2, Shield, UserCheck, UserX } from 'lucide-react'
 
 import { fetchAdminUsers, type AdminUser } from '@/lib/api/admin-users'
 
-type UserRow =   {
-    id: number
+type UserRow = {
+  id: number
   name: string
   email: string
   type: 'Student' | 'Recruiter' | 'Admin' | 'Other'
@@ -31,7 +31,7 @@ const getTypeBadge = (type: string) => {
     ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
     : type === 'Recruiter'
       ? 'bg-purple-500/10 text-purple-700 dark:text-purple-400'
-: type === 'Admin'
+      : type === 'Admin'
         ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
         : 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
 }
@@ -61,7 +61,7 @@ function mapUser(u: AdminUser): UserRow {
 }
 
 export default function UsersManagement() {
-const { data: session, status } = useSession()
+  const { data: session, status } = useSession()
 
   const [rows, setRows] = useState<UserRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -99,14 +99,14 @@ const { data: session, status } = useSession()
 
   const filteredUsers = useMemo(() => {
     return rows.filter((u) => {
-    const matchesSearch =
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesSearch =
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesFilter = filterType === 'all' || u.type === filterType
-    return matchesSearch && matchesFilter
-  })
-}, [rows, searchTerm, filterType])
+      const matchesFilter = filterType === 'all' || u.type === filterType
+      return matchesSearch && matchesFilter
+    })
+  }, [rows, searchTerm, filterType])
 
   const totalUsers = rows.length
   const activeUsers = rows.filter((u) => u.status === 'active').length
@@ -131,29 +131,30 @@ const { data: session, status } = useSession()
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
           <div className="flex gap-2">
-            <Button 
+            <Button
               variant={filterType === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterType('all')}
             >
               All Users
             </Button>
-            <Button 
+            <Button
               variant={filterType === 'Student' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterType('Student')}
             >
               Students
             </Button>
-            <Button 
+            <Button
               variant={filterType === 'Recruiter' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterType('Recruiter')}
             >
               Recruiters
             </Button>
-<Button
+            <Button
               variant={filterType === 'Admin' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterType('Admin')}
@@ -183,94 +184,127 @@ const { data: session, status } = useSession()
       )}
 
       {/* Users Table */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Name</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Email</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Type</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
-                <th className="px-6 py-4 text-center font-semibold text-foreground">Projects</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Joined</th>
-                <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="border-b border-border/50 hover:bg-muted/30">
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-foreground">{user.name}</p>
-                  </td>
-                  <td className="px-6 py-4 text-foreground/70">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      {user.email}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getTypeBadge(user.type))}>
-                      {user.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusBadge(user.status))}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center font-medium text-foreground">{user.projects}</td>
-                  <td className="px-6 py-4 text-foreground/70">{user.joined}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-2">
-                      <Button variant="ghost" size="sm" title="View Profile">
-                        <Shield className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        title={user.status === 'active' ? 'Deactivate' : 'Activate'}
-                      >
-                        {user.status === 'active' ? (
-                          <UserX className="h-4 w-4" />
-                        ) : (
-                          <UserCheck className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button variant="ghost" size="sm" title="Delete" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
+      {!loading && !error && (
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Name</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Email</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Type</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
+                  <th className="px-6 py-4 text-center font-semibold text-foreground">Projects</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Joined</th>
+                  <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+              </thead>
+
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="border-b border-border/50 hover:bg-muted/30">
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-foreground">{user.name}</p>
+                    </td>
+
+                    <td className="px-6 py-4 text-foreground/70">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        {user.email}
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <span
+                        className={cn(
+                          'inline-block px-2.5 py-0.5 rounded-full text-xs font-medium',
+                          getTypeBadge(user.type)
+                        )}
+                      >
+                        {user.type}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <span
+                        className={cn(
+                          'inline-block px-2.5 py-0.5 rounded-full text-xs font-medium',
+                          getStatusBadge(user.status)
+                        )}
+                      >
+                        {user.status}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4 text-center font-medium text-foreground">{user.projects}</td>
+                    <td className="px-6 py-4 text-foreground/70">{user.joined}</td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center gap-2">
+                        <Button variant="ghost" size="sm" title="View Profile">
+                          <Shield className="h-4 w-4" />
+                        </Button>
+
+                        {/* Not implemented in backend yet */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Activate/Deactivate (not implemented yet)"
+                          onClick={() => alert('Backend endpoint not implemented yet')}
+                        >
+                          {user.status === 'active' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                        </Button>
+
+                        {/* Not implemented in backend yet */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Delete (not implemented yet)"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => alert('Backend endpoint not implemented yet')}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+
+                {filteredUsers.length === 0 && (
+                  <tr>
+                    <td className="px-6 py-10 text-center text-muted-foreground" colSpan={7}>
+                      No users match your filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card className="p-6">
-          <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{users.length}</p>
-          <p className="mt-2 text-xs text-muted-foreground">{filteredUsers.length} shown</p>
-        </Card>
-        <Card className="p-6">
-          <p className="text-sm font-medium text-muted-foreground">Active Users</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">
-            {users.filter((u) => u.status === 'active').length}
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">Currently online or active</p>
-        </Card>
-        <Card className="p-6">
-          <p className="text-sm font-medium text-muted-foreground">Students</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">
-            {users.filter((u) => u.type === 'Student').length}
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">Showcasing projects</p>
-        </Card>
-      </div>
+      {!loading && !error && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card className="p-6">
+            <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{totalUsers}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{filteredUsers.length} shown</p>
+          </Card>
+
+          <Card className="p-6">
+            <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{activeUsers}</p>
+            <p className="mt-2 text-xs text-muted-foreground">Status = active</p>
+          </Card>
+
+          <Card className="p-6">
+            <p className="text-sm font-medium text-muted-foreground">Students</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{studentsCount}</p>
+            <p className="mt-2 text-xs text-muted-foreground">role = student</p>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
