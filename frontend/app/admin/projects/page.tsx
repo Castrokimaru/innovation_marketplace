@@ -1,84 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Search,
-  Filter,
-  Eye,
-  Edit,
-  Trash2,
-  CheckCircle,
-  Clock,
-  XCircle,
-  MoreVertical,
-} from 'lucide-react'
+import {   Search,   Filter,   Eye,   Edit,   Trash2,   CheckCircle,   Clock,   XCircle } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
-const projects = [
-  {
-    id: 1,
-    title: 'AI Chat Application',
-    author: 'Sarah Johnson',
-    category: 'AI/ML',
-    status: 'approved',
-    views: 1250,
-    likes: 180,
-    submitted: '2025-01-28',
-  },
-  {
-    id: 2,
-    title: 'E-commerce Platform',
-    author: 'Mike Chen',
-    category: 'Web',
-    status: 'pending',
-    views: 450,
-    likes: 65,
-    submitted: '2025-01-27',
-  },
-  {
-    id: 3,
-    title: 'Mobile Weather App',
-    author: 'Alex Kipchoge',
-    category: 'Mobile',
-    status: 'approved',
-    views: 890,
-    likes: 125,
-    submitted: '2025-01-26',
-  },
-  {
-    id: 4,
-    title: 'Task Management System',
-    author: 'Emma Williams',
-    category: 'Productivity',
-    status: 'rejected',
-    views: 120,
-    likes: 15,
-    submitted: '2025-01-25',
-  },
-  {
-    id: 5,
-    title: 'Fitness Tracker App',
-    author: 'David Okonkwo',
-    category: 'Health & Wellness',
-    status: 'pending',
-    views: 320,
-    likes: 45,
-    submitted: '2025-01-24',
-  },
-  {
-    id: 6,
-    title: 'Social Network Platform',
-    author: 'Lisa Anderson',
-    category: 'Social',
-    status: 'approved',
-    views: 2100,
-    likes: 310,
-    submitted: '2025-01-23',
-  },
-]
+import {
+  fetchProjects,
+  approveProject,
+  rejectProject,
+  type ProjectRow,
+} from '@/lib/api/admin-projects'
 
 const getStatusIcon = (status: string) => {
   switch (status) {
