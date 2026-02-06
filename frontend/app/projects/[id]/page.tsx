@@ -9,9 +9,66 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Heart, Share2, Github, Globe, Calendar, Users } from 'lucide-react'
-import { useState } from 'react'
-import { useParams } from 'next/navigation'
-import { PROJECTS } from '@/lib/projects'
+
+const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
+
+type BackendTeamMember = {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  role: string
+}
+
+type BackendCategory = { id: number; name: string }
+
+type BackendProject = {
+  id: number
+  title: string
+  description: string
+  video: string
+  technologies: string // comma-separated in your backend
+  submitted_name: string
+  status: 'approved' | 'pending' | 'rejected'
+  created_at: string
+  team_members: BackendTeamMember[]
+  categories: BackendCategory[]
+}
+
+function parseTechnologies(raw: string): string[] {
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+function formatDate(value: string) {
+  // your backend returns str(p.created_at) which may not be ISO; this is safer
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return value
+  return d.toLocaleDateString()
+}
+
+function getStatusBadgeVariant(status: string) {
+  // keep using your current styling approach
+  switch (status) {
+    case 'approved':
+      return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
+    case 'pending':
+      return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20'
+    case 'rejected':
+      return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
+    default:
+      return 'bg-muted text-foreground/70'
+  }
+}
+
+async function fetchAllProjects(): Promise<BackendProject[]> {
+  const res = await fetch(`${BASE}/projects`, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Failed to fetch projects (${res.status})`)
+  return res.json()
+}
 
 export default function ProjectDetailPage() {
   const params = useParams()
