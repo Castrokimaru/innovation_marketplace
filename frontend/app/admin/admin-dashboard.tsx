@@ -21,7 +21,6 @@ import {
 
 import { Users, Package, ShoppingBag, TrendingUp, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
 
-/** ===== Backend types (match your Flask responses) ===== */
 type BackendProject = {
   id: number
   title: string
@@ -161,7 +160,6 @@ export default function AdminDashboard() {
         const p = await fetchProjects()
         setProjects(Array.isArray(p) ? p : [])
 
-        // Users endpoint is admin-only
         if (token) {
           try {
             const u = await fetchAdminUsers(token)
