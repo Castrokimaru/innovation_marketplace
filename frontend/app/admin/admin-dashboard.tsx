@@ -19,14 +19,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-import {
-  Users,
-  Package,
-  ShoppingBag,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownLeft,
-} from 'lucide-react'
+import { Users, Package, ShoppingBag, TrendingUp, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
 
 /** ===== Backend types (match your Flask responses) ===== */
 type BackendProject = {
@@ -102,7 +95,6 @@ async function fetchAdminUsers(token: string): Promise<AdminUser[]> {
   })
 
   if (!res.ok) {
-    // Let the dashboard render even if 401/403
     const msg = await res.text().catch(() => '')
     throw new Error(`Failed to fetch admin users (${res.status}). ${msg}`)
   }
@@ -119,10 +111,38 @@ type StatCard = {
   note?: string
 }
 
+function LoadingCards() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="p-6">
+            <div className="h-4 w-28 rounded bg-muted animate-pulse" />
+            <div className="mt-3 h-8 w-16 rounded bg-muted animate-pulse" />
+            <div className="mt-3 h-4 w-full rounded bg-muted animate-pulse" />
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <Card key={i} className="p-6">
+            <div className="h-5 w-44 rounded bg-muted animate-pulse" />
+            <div className="mt-4 h-[300px] rounded bg-muted animate-pulse" />
+          </Card>
+        ))}
+      </div>
+
+      <Card className="p-6">
+        <div className="h-5 w-44 rounded bg-muted animate-pulse" />
+        <div className="mt-4 h-40 rounded bg-muted animate-pulse" />
+      </Card>
+    </div>
+  )
+}
+
 export default function AdminDashboard() {
   const { data: session, status } = useSession()
-
-  // You stored this in session top-level in your callback:
   const token: string | undefined = (session as any)?.accessToken
 
   const [projects, setProjects] = useState<BackendProject[]>([])
@@ -139,15 +159,14 @@ export default function AdminDashboard() {
         setUsersError(null)
 
         const p = await fetchProjects()
-        setProjects(p)
+        setProjects(Array.isArray(p) ? p : [])
 
-        // Users are admin-only: only attempt if token exists
+        // Users endpoint is admin-only
         if (token) {
           try {
             const u = await fetchAdminUsers(token)
-            setUsers(u)
+            setUsers(Array.isArray(u) ? u : [])
           } catch (e: any) {
-            // do NOT break whole dashboard
             setUsers([])
             setUsersError(e?.message ?? 'Could not load admin users')
           }
@@ -169,16 +188,9 @@ export default function AdminDashboard() {
   const totalProjects = projects.length
   const totalUsers = users.length
 
-  const approvedCount = useMemo(
-    () => projects.filter((p) => p.status === 'approved').length,
-    [projects]
-  )
-  const pendingCount = useMemo(
-    () => projects.filter((p) => p.status === 'pending').length,
-    [projects]
-  )
+  const approvedCount = useMemo(() => projects.filter((p) => p.status === 'approved').length, [projects])
+  const pendingCount = useMemo(() => projects.filter((p) => p.status === 'pending').length, [projects])
 
-  // Recent projects from backend
   const recentProjects = useMemo(() => {
     return [...projects]
       .sort((a, b) => {
@@ -196,7 +208,6 @@ export default function AdminDashboard() {
       }))
   }, [projects])
 
-  // Chart (last 6 months)
   const chartData: ChartPoint[] = useMemo(() => {
     const now = new Date()
     const keys: string[] = []
@@ -226,7 +237,6 @@ export default function AdminDashboard() {
       month: monthLabel(k),
       projects: projCounts.get(k) ?? 0,
       users: userCounts.get(k) ?? 0,
-      // sales isn't in backend yet
       sales: 0,
     }))
   }, [projects, users])
@@ -255,18 +265,12 @@ export default function AdminDashboard() {
         label: 'Active Now',
         value: '—',
         icon: TrendingUp,
-        note: 'Requires tracking/analytics endpoint',
+        note: 'Requires analytics endpoint',
       },
     ]
   }, [totalProjects, approvedCount, pendingCount, totalUsers, token, usersError])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Loading dashboard…</h1>
-      </div>
-    )
-  }
+  if (loading || status === 'loading') return <LoadingCards />
 
   if (error) {
     return (
@@ -303,9 +307,7 @@ export default function AdminDashboard() {
                     </p>
                   )}
 
-                  {stat.note && (
-                    <p className="mt-2 text-xs text-muted-foreground">{stat.note}</p>
-                  )}
+                  {stat.note && <p className="mt-2 text-xs text-muted-foreground">{stat.note}</p>}
                 </div>
 
                 <div className="rounded-lg bg-primary/10 p-3">
@@ -319,9 +321,9 @@ export default function AdminDashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Line Chart */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Growth Metrics</h3>
+
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -340,16 +342,12 @@ export default function AdminDashboard() {
             </LineChart>
           </ResponsiveContainer>
 
-          {usersError && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              Users data: {usersError}
-            </p>
-          )}
+          {usersError && <p className="mt-3 text-xs text-muted-foreground">Users data: {usersError}</p>}
         </Card>
 
-        {/* Bar Chart */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Sales Performance</h3>
+
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -400,7 +398,9 @@ export default function AdminDashboard() {
                   <td className="px-4 py-3 font-medium text-foreground">{project.title}</td>
                   <td className="px-4 py-3 text-foreground/70">{project.author}</td>
                   <td className="px-4 py-3">
-                    <span className={cn('inline-block px-3 py-1 rounded-full text-xs font-medium', getStatusColor(project.status))}>
+                    <span
+                      className={cn('inline-block px-3 py-1 rounded-full text-xs font-medium', getStatusColor(project.status))}
+                    >
                       {project.status}
                     </span>
                   </td>
