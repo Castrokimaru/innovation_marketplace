@@ -18,9 +18,10 @@ export default function Home({session}:any) {
         <Hero />
         <FeaturedProjects />
         <HowItWorks />
+        <MerchandiseSection/>
         <WhyChooseUs />
         <CTASection />
-        <MerchandiseSection/>
+      
       </main>
       <Footer />
     </div>
