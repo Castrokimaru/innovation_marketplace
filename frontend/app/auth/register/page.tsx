@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-import { User, Mail, Lock, Eye, EyeOff, Check, Loader2, ArrowRight } from 'lucide-react'
+import { User, Mail, Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react'
 import { signup } from '@/lib/api'
 
 type UserType = 'student' | 'recruiter'
@@ -38,7 +38,7 @@ export default function RegisterPage() {
       { label: 'Contains lowercase letter', met: /[a-z]/.test(formData.password) },
       { label: 'Contains number', met: /\d/.test(formData.password) },
     ],
-    [formData.password],
+    [formData.password]
   )
 
   const allRequirementsMet = passwordRequirements.every((req) => req.met)
@@ -82,6 +82,7 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
+      // split full name into first + last
       const parts = fullName.split(/\s+/)
       const first_name = parts.shift() || ''
       const last_name = parts.join(' ') || ''
@@ -94,6 +95,7 @@ export default function RegisterPage() {
         role: userType,
       })
 
+      // redirect without full page refresh
       router.replace('/auth/signin?registered=1')
     } catch (err: any) {
       setError(err?.message || 'Registration failed. Please try again.')
@@ -102,48 +104,64 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <div className="space-y-1 text-center">
-        <h1 className="text-xl font-semibold tracking-tight">Create your account</h1>
-        <p className="text-sm text-foreground/70">
-          Join Moringa Innovation and start showcasing your ideas.
+    <div className="space-y-6">
+      {/* Title */}
+      <div className="space-y-2 text-center">
+        <h1 className="text-2xl font-bold text-foreground">Join Moringa Innovation</h1>
+        <p className="text-sm text-muted-foreground">
+          Create your account and start showcasing your ideas
         </p>
       </div>
 
-      {/* Role toggle */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* User Type Selection */}
+      <div className="grid grid-cols-2 gap-3">
         {[
-          { value: 'student' as const, label: 'Student' },
-          { value: 'recruiter' as const, label: 'Recruiter' },
+          { value: 'student' as const, label: 'Student', icon: '👨‍💻' },
+          { value: 'recruiter' as const, label: 'Recruiter', icon: '🏢' },
         ].map((option) => (
           <button
             key={option.value}
             type="button"
             onClick={() => setUserType(option.value)}
-            className={[
-              'rounded-md border px-3 py-2 text-sm font-medium transition',
-              'flex items-center justify-center',
+            className={`rounded-lg border-2 p-3 text-sm font-medium transition ${
               userType === option.value
-                ? 'border-primary bg-primary/10'
-                : 'border-border hover:border-primary/50',
-            ].join(' ')}
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:border-primary/50'
+            }`}
             disabled={isLoading}
           >
+            <div className="mb-1 text-lg">{option.icon}</div>
             {option.label}
           </button>
         ))}
       </div>
 
-      {error && (
-        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {error}
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
         </div>
-      )}
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-2 text-muted-foreground">Register with email</span>
+        </div>
+      </div>
 
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Full name */}
+        {error && (
+          <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive/20">
+              <span className="text-destructive">!</span>
+            </div>
+            {error}
+          </div>
+        )}
+
+        {/* Full Name */}
         <div className="space-y-2">
-          <Label htmlFor="name">Full name</Label>
+          <Label htmlFor="name" className="text-sm font-medium">
+            Full Name
+          </Label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -153,17 +171,18 @@ export default function RegisterPage() {
               placeholder="John Doe"
               value={formData.name}
               onChange={handleChange}
-              className="h-10 pl-10"
+              className="pl-10"
               disabled={isLoading}
               required
-              autoComplete="name"
             />
           </div>
         </div>
 
         {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-sm font-medium">
+            Email Address
+          </Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -173,17 +192,18 @@ export default function RegisterPage() {
               placeholder="you@example.com"
               value={formData.email}
               onChange={handleChange}
-              className="h-10 pl-10"
+              className="pl-10"
               disabled={isLoading}
               required
-              autoComplete="email"
             />
           </div>
         </div>
 
         {/* Password */}
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="text-sm font-medium">
+            Password
+          </Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -193,39 +213,42 @@ export default function RegisterPage() {
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
-              className="h-10 pl-10 pr-10"
+              className="pl-10 pr-10"
               disabled={isLoading}
               required
-              autoComplete="new-password"
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
               disabled={isLoading}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
 
-          {formData.password ? (
-            <div className="grid gap-1.5 pt-1">
+          {/* Password Requirements */}
+          {formData.password && (
+            <div className="mt-3 space-y-2">
               {passwordRequirements.map((req) => (
-                <div key={req.label} className="flex items-center gap-2 text-[11px]">
-                  <Check className={`h-3.5 w-3.5 ${req.met ? 'text-accent' : 'text-muted-foreground'}`} />
-                  <span className={req.met ? 'text-foreground/80' : 'text-muted-foreground'}>
+                <div key={req.label} className="flex items-center gap-2 text-xs">
+                  <Check
+                    className={`h-4 w-4 ${req.met ? 'text-accent' : 'text-muted-foreground'}`}
+                  />
+                  <span className={req.met ? 'text-foreground' : 'text-muted-foreground'}>
                     {req.label}
                   </span>
                 </div>
               ))}
             </div>
-          ) : null}
+          )}
         </div>
 
-        {/* Confirm password */}
+        {/* Confirm Password */}
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <Label htmlFor="confirmPassword" className="text-sm font-medium">
+            Confirm Password
+          </Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -235,82 +258,80 @@ export default function RegisterPage() {
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={[
-                'h-10 pl-10 pr-10',
-                formData.confirmPassword && !passwordMatch ? 'border-destructive/50' : '',
-              ].join(' ')}
+              className={`pl-10 pr-10 ${
+                formData.confirmPassword && !passwordMatch ? 'border-destructive/50' : ''
+              }`}
               disabled={isLoading}
               required
-              autoComplete="new-password"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
               disabled={isLoading}
-              aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </button>
           </div>
-          {formData.confirmPassword && !passwordMatch ? (
-            <p className="text-[11px] text-destructive">Passwords do not match</p>
-          ) : null}
+          {formData.confirmPassword && !passwordMatch && (
+            <p className="text-xs text-destructive">Passwords do not match</p>
+          )}
         </div>
 
-        {/* Terms */}
-        <div className="rounded-md border border-border/60 bg-muted/20 p-3">
-          <label className="flex cursor-pointer items-start gap-3 text-xs text-foreground/70">
-            <input
-              type="checkbox"
-              id="terms"
-              checked={agreeTerms}
-              onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="mt-0.5 h-4 w-4 cursor-pointer rounded border border-border"
-              disabled={isLoading}
-            />
-            <span>
-              I agree to the{' '}
-              <Link href="/terms" className="text-primary hover:underline">
-                Terms
-              </Link>{' '}
-              and{' '}
-              <Link href="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-              .
-            </span>
+        {/* Terms Agreement */}
+        <div className="flex items-start gap-3 rounded-lg bg-muted/30 p-3">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreeTerms}
+            onChange={(e) => setAgreeTerms(e.target.checked)}
+            className="mt-0.5 h-4 w-4 cursor-pointer rounded border border-border"
+            disabled={isLoading}
+          />
+          <label htmlFor="terms" className="cursor-pointer text-xs text-muted-foreground">
+            I agree to the{' '}
+            <Link href="/terms" className="text-primary underline hover:text-primary/80">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="text-primary underline hover:text-primary/80">
+              Privacy Policy
+            </Link>
           </label>
         </div>
 
+        {/* Submit Button */}
         <Button
           type="submit"
-          className="h-10 w-full"
+          className="w-full bg-primary hover:bg-primary/90 h-10 font-medium"
           disabled={isLoading || !agreeTerms || !allRequirementsMet}
         >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating…
+              Creating account...
             </>
           ) : (
-            <>
-              Create account
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
+            'Create Account'
           )}
         </Button>
       </form>
 
+      {/* Sign In Link */}
       <div className="text-center text-sm">
-        <span className="text-foreground/70">Already have an account? </span>
+        <span className="text-muted-foreground">Already have an account? </span>
         <Link href="/auth/signin" className="font-medium text-primary hover:underline">
           Sign in
         </Link>
       </div>
 
-      <div className="rounded-md border border-border/60 bg-background/60 px-3 py-2 text-center text-[11px] text-foreground/70">
-        Your password is encrypted. We never share your data.
+      {/* Security Notice */}
+      <div className="rounded-lg border border-accent/20 bg-accent/5 p-3 text-center text-xs text-muted-foreground">
+        <p>🔒 Your password is encrypted and secure. We never share your data.</p>
       </div>
     </div>
   )
