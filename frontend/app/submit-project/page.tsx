@@ -227,7 +227,7 @@ export default function SubmitProjectPage() {
 
             {/* Category */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Category (optional)</label>
+              <label className="text-sm font-medium">Category</label>
               <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" {...register('category')}>
                 {CATEGORY_OPTIONS.map((c) => (
                   <option key={c} value={c}>
