@@ -12,13 +12,11 @@ class MerchandiseList(Resource):
             {
                 "id": m.id,
                 "name": m.name,
-                "description": m.description,   
                 "price": float(m.price),
                 "stock": m.stock,
                 "image_url": m.image_url
             } for m in items
         ], 200
-
 
     @jwt_required()
     def post(self):
