@@ -13,6 +13,8 @@ from resources.merchandise import MerchandiseList, MerchandiseItem
 from resources.orders import OrderCreate, OrderDelete
 from resources.admin import CategoryCreate, ApproveProject, RejectProject, AdminUserList
 from resources.recruiters import BrowseProjects
+from resources.likes import ProjectLikeToggle
+
 
 def create_app():
     app = Flask(__name__)
@@ -34,6 +36,7 @@ def create_app():
     api.add_resource(UpdateProfile, "/profile")
 
     api.add_resource(ProjectList, "/projects")
+    api.add_resource(ProjectLikeToggle, "/projects/<int:project_id>/like")
     
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(MerchandiseItem, "/merchandise/<int:id>")

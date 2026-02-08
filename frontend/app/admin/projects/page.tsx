@@ -1,18 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
+
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Filter, Eye, Edit, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { cn } from '@/lib/utils'
 
-import {
-  fetchProjects,
-  approveProject,
-  rejectProject,
-  type ProjectRow,
-} from '@/lib/api/admin-projects'
+import { Search, Filter, Eye, CheckCircle, Clock, XCircle, Package, BadgeCheck, Hourglass } from 'lucide-react'
+
+import { fetchProjects, approveProject, rejectProject, type ProjectRow } from '@/lib/api/admin-projects'
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -40,8 +38,26 @@ const getStatusColor = (status: string) => {
   }
 }
 
+function LoadingTableShell() {
+  return (
+    <Card className="overflow-hidden">
+      <div className="border-b bg-muted/30 px-6 py-4">
+        <div className="h-5 w-40 rounded bg-muted animate-pulse" />
+      </div>
+      <div className="p-6 space-y-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-10 w-full rounded bg-muted animate-pulse" />
+        ))}
+      </div>
+    </Card>
+  )
+}
+
 export default function ProjectsManagement() {
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
+
+  const token = (session as any)?.accessToken as string | undefined
+  const isAdmin = (session as any)?.user?.role === 'admin'
 
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,51 +66,68 @@ export default function ProjectsManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending' | 'rejected'>('all')
 
-  async function load() {
+  const hasActiveFilters = Boolean(searchTerm.trim() || filterStatus !== 'all')
+  const clearFilters = () => {
+    setSearchTerm('')
+    setFilterStatus('all')
+  }
+
+  const load = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       const rows = await fetchProjects()
-      setProjects(rows)
+      setProjects(Array.isArray(rows) ? rows : [])
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load projects')
+      setProjects([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     load()
-  }, [])
+  }, [load])
 
   const filteredProjects = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase()
     return projects.filter((p) => {
       const matchesSearch =
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.author.toLowerCase().includes(searchTerm.toLowerCase())
+        !q || p.title.toLowerCase().includes(q) || p.author.toLowerCase().includes(q)
       const matchesFilter = filterStatus === 'all' || p.status === filterStatus
       return matchesSearch && matchesFilter
     })
   }, [projects, searchTerm, filterStatus])
 
-  // Needs NextAuth session to include the JWT used by Flask
-  const token = (session as any)?.accessToken as string | undefined
-  const isAdmin = (session as any)?.user?.role === 'admin'
+  const stats = useMemo(() => {
+    const total = projects.length
+    const approved = projects.filter((p) => p.status === 'approved').length
+    const pending = projects.filter((p) => p.status === 'pending').length
+    const rejected = projects.filter((p) => p.status === 'rejected').length
+    return { total, approved, pending, rejected, shown: filteredProjects.length }
+  }, [projects, filteredProjects.length])
 
   async function onApprove(id: number) {
-    if (!token) return setError('Missing token (not authenticated)')
+    if (!token) {
+      setError('Missing token (not authenticated)')
+      return
+    }
     try {
       // optimistic update
       setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'approved' } : p)))
       await approveProject(id, token)
     } catch (e: any) {
       setError(e?.message ?? 'Approve failed')
-      await load() // revert by reloading
+      await load()
     }
   }
 
   async function onReject(id: number) {
-    if (!token) return setError('Missing token (not authenticated)')
+    if (!token) {
+      setError('Missing token (not authenticated)')
+      return
+    }
     try {
       setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'rejected' } : p)))
       await rejectProject(id, token)
@@ -106,14 +139,81 @@ export default function ProjectsManagement() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
-        <p className="mt-2 text-muted-foreground">Approve, review, or manage student projects</p>
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
+          <p className="mt-2 text-muted-foreground">Approve, review, or manage student projects</p>
+        </div>
+
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={load} disabled={loading}>
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={clearFilters} disabled={!hasActiveFilters || loading}>
+            Clear filters
+          </Button>
+        </div>
       </div>
 
-      {/* Search and Filter */}
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.total}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{stats.shown} shown</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <Package className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Approved</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.approved}</p>
+              <p className="mt-2 text-xs text-muted-foreground">status = approved</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <BadgeCheck className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.pending}</p>
+              <p className="mt-2 text-xs text-muted-foreground">status = pending</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <Hourglass className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.rejected}</p>
+              <p className="mt-2 text-xs text-muted-foreground">status = rejected</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <XCircle className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filters */}
       <Card className="p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -124,7 +224,7 @@ export default function ProjectsManagement() {
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={filterStatus === 'all' ? 'default' : 'outline'}
               size="sm"
@@ -147,9 +247,26 @@ export default function ProjectsManagement() {
             ))}
           </div>
         </div>
+
+        {/* active filter chips */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-foreground/60">
+          {searchTerm.trim() ? (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs">
+              Query: <span className="font-medium text-foreground">{searchTerm.trim()}</span>
+            </span>
+          ) : null}
+
+          {filterStatus !== 'all' ? (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs">
+              Status: <span className="font-medium text-foreground">{filterStatus}</span>
+            </span>
+          ) : null}
+
+          {!hasActiveFilters ? <span>No active filters</span> : null}
+        </div>
       </Card>
 
-      {loading && <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>}
+      {loading && <LoadingTableShell />}
 
       {!loading && error && (
         <Card className="p-6">
@@ -190,12 +307,7 @@ export default function ProjectsManagement() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           {getStatusIcon(project.status)}
-                          <span
-                            className={cn(
-                              'inline-block px-2.5 py-0.5 rounded-full text-xs font-medium',
-                              getStatusColor(project.status)
-                            )}
-                          >
+                          <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(project.status))}>
                             {project.status}
                           </span>
                         </div>
@@ -205,7 +317,6 @@ export default function ProjectsManagement() {
 
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
-                          {/* Admin actions */}
                           {isAdmin && project.status === 'pending' && (
                             <>
                               <Button size="sm" onClick={() => onApprove(project.id)}>
@@ -217,21 +328,9 @@ export default function ProjectsManagement() {
                             </>
                           )}
 
-                          {/* Existing icons */}
-                          {/* <Button variant="ghost" size="sm" title="View">
+                          <Button variant="ghost" size="sm" title="View (UI only)">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" title="Edit">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title="Delete"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button> */}
                         </div>
                       </td>
                     </tr>
@@ -239,7 +338,7 @@ export default function ProjectsManagement() {
 
                   {filteredProjects.length === 0 && (
                     <tr>
-                      <td className="px-6 py-10 text-center text-muted-foreground" colSpan={6}>
+                      <td className="px-6 py-12 text-center text-muted-foreground" colSpan={6}>
                         No projects match your filters.
                       </td>
                     </tr>
@@ -258,8 +357,4 @@ export default function ProjectsManagement() {
       )}
     </div>
   )
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ')
 }

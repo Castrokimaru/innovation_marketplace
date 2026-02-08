@@ -11,9 +11,10 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
 
-import { Loader2, ArrowLeft, Save } from 'lucide-react'
+import { Loader2, ArrowLeft, Save, User2, Shield } from 'lucide-react'
 import { updateProfile } from '@/lib/api'
 
 type FormState = {
@@ -49,6 +50,14 @@ export default function StudentProfileClient() {
   useEffect(() => setForm(initial), [initial])
 
   const canSave = form.first_name.trim() && form.last_name.trim()
+
+  const isDirty = useMemo(() => {
+    return (
+      form.first_name !== initial.first_name ||
+      form.last_name !== initial.last_name ||
+      form.new_password.trim().length > 0
+    )
+  }, [form, initial])
 
   const onChange =
     (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -97,7 +106,7 @@ export default function StudentProfileClient() {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <main className="container mx-auto px-4 py-10">
+        <main className="container mx-auto max-w-3xl px-4 py-10">
           <div className="h-8 w-72 rounded bg-muted animate-pulse" />
           <div className="mt-6 h-64 rounded bg-muted animate-pulse" />
         </main>
@@ -112,11 +121,12 @@ export default function StudentProfileClient() {
     <div className="min-h-screen">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-10">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
+      <main className="container mx-auto max-w-3xl px-4 py-10">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Edit Profile</h1>
-            <p className="text-foreground/70">Update your name and password.</p>
+            <p className="text-foreground/70">Update your personal info and security settings.</p>
+            <Badge variant="secondary">{isDirty ? 'Unsaved changes' : 'Up to date'}</Badge>
           </div>
 
           <div className="flex gap-3">
@@ -135,7 +145,12 @@ export default function StudentProfileClient() {
         </div>
 
         <Card className="mt-8 p-6">
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="flex items-center gap-2 text-sm text-foreground/70">
+            <User2 className="h-4 w-4" />
+            <span className="font-medium">Personal information</span>
+          </div>
+
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="first_name">First name</Label>
               <Input id="first_name" value={form.first_name} onChange={onChange('first_name')} />
@@ -150,23 +165,29 @@ export default function StudentProfileClient() {
               <Label htmlFor="email">Email (read-only)</Label>
               <Input id="email" value={session.user.email ?? ''} readOnly />
             </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="new_password">New password (optional)</Label>
-              <Input
-                id="new_password"
-                type="password"
-                value={form.new_password}
-                onChange={onChange('new_password')}
-                placeholder="Leave blank to keep current password"
-              />
-              <p className="text-xs text-foreground/60">
-                Backend currently accepts only <code>password</code> (no current password check).
-              </p>
-            </div>
           </div>
 
-          <div className="mt-6 flex gap-3">
+          <div className="mt-8 flex items-center gap-2 text-sm text-foreground/70">
+            <Shield className="h-4 w-4" />
+            <span className="font-medium">Security</span>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="new_password">New password (optional)</Label>
+            <Input
+              id="new_password"
+              type="password"
+              value={form.new_password}
+              onChange={onChange('new_password')}
+              placeholder="Leave blank to keep current password"
+            />
+            <p className="text-xs text-foreground/60">
+              Backend currently accepts only <code>password</code> (no current password check).
+            </p>
+          </div>
+
+          <div className="mt-6 flex items-center justify-between border-t pt-4">
+            <p className="text-sm text-foreground/60">Changes apply immediately after saving.</p>
             <Button variant="outline" onClick={onCancel} disabled={saving}>
               Cancel
             </Button>
