@@ -1,123 +1,171 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { ArrowRight, RefreshCcw } from 'lucide-react'
+
 import { ProjectCard } from './project-card'
 import { Button } from '@/components/ui/button'
-import { ArrowRight } from 'lucide-react'
-import Link from 'next/link'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { fetchFeaturedProjects, type ProjectCardVM } from '@/lib/api/projects'
 
-const FEATURED_PROJECTS = [
-  {
-    id: 1,
-    title: 'HealthTech Appointment System',
-    description:
-      'AI-powered healthcare appointment booking platform with real-time clinic sync and automated reminders.',
-    category: 'HealthTech',
-    author: 'Team Alpha',
-    technologies: ['React', 'Node.js', 'PostgreSQL'],
-    views: 1250,
-    rating: 4.8,
-    image:
-      'https://media.istockphoto.com/id/916632830/photo/doctor-icons-medical-care.jpg?s=2048x2048&w=is&k=20&c=gHJMw9jS3n_WYqgX2UGEwwgBWpakxDzFj3uAa3AcMhE=',
-  },
-  {
-    id: 2,
-    title: 'EdTech Learning Analytics Dashboard',
-    description:
-      'Real-time student performance analytics with predictive learning path recommendations.',
-    category: 'EdTech',
-    author: 'Team Beta',
-    technologies: ['Next.js', 'Python', 'TensorFlow'],
-    views: 980,
-    rating: 4.6,
-    image:
-      'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    id: 3,
-    title: 'FinTech Mobile Wallet',
-    description:
-      'Secure mobile payment solution with peer-to-peer transfers and spend analytics.',
-    category: 'FinTech',
-    author: 'Team Gamma',
-    technologies: ['Flutter', 'Firebase', 'Stripe'],
-    views: 1540,
-    rating: 4.9,
-    image:
-      'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    id: 4,
-    title: 'AgriTech Smart Farming',
-    description:
-      'IoT and AI-based crop monitoring system for optimal yield and resource management.',
-    category: 'AgriTech',
-    author: 'Team Delta',
-    technologies: ['Python', 'Arduino', 'AWS'],
-    views: 850,
-    rating: 4.7,
-    image:
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
-  },
-]
+function ProjectSkeletonCard() {
+  return (
+    <div className="h-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur">
+      <div className="h-44 w-full animate-pulse bg-white/10" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 w-3/4 animate-pulse rounded bg-white/10" />
+        <div className="h-4 w-full animate-pulse rounded bg-white/10" />
+        <div className="h-4 w-5/6 animate-pulse rounded bg-white/10" />
+        <div className="flex gap-2 pt-2">
+          <div className="h-6 w-16 animate-pulse rounded bg-white/10" />
+          <div className="h-6 w-20 animate-pulse rounded bg-white/10" />
+          <div className="h-6 w-14 animate-pulse rounded bg-white/10" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function FeaturedProjects() {
   const { data: session } = useSession()
   const router = useRouter()
-  const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const [projects, setProjects] = useState<ProjectCardVM[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleViewAllProjects = () => {
-    if (!session && mounted) {
-      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`)
-    } else {
-      router.push('/projects')
+  const load = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchFeaturedProjects(3)
+      setProjects(data)
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to load featured projects.')
+      setProjects([])
+    } finally {
+      setLoading(false)
     }
   }
 
+  useEffect(() => {
+    load()
+  }, [])
+
+  const handleViewAllProjects = () => {
+    // You can keep this protected, while still allowing "Explore" public in Hero
+    if (!session) {
+      const callbackUrl = window.location.pathname
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+      return
+    }
+    router.push('/projects')
+  }
+
+  const gridJustify =
+    projects.length < 3 ? 'lg:justify-center' : 'lg:justify-start'
+
+  const gridWidth = useMemo(() => {
+    if (projects.length === 1) return 'lg:max-w-xl'
+    if (projects.length === 2) return 'lg:max-w-5xl'
+    return 'w-full'
+  }, [projects.length])
+
   return (
     <section className="relative overflow-hidden py-20 md:py-28">
-      {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?auto=format&fit=crop&w=1920&q=80')",
         }}
+        aria-hidden="true"
       />
-      {/* Overlay (keep it simple for good contrast) */}
-      <div className="absolute inset-0 bg-black/45" />
+
+      <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/60 to-black/90"
+        aria-hidden="true"
+      />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="space-y-10">
-          {/* Header */}
           <div className="max-w-2xl space-y-3">
-            <h2 className="text-4xl font-bold tracking-tight text-white">
-              Featured Projects
+            <p className="inline-flex w-fit items-center rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-xs font-medium text-yellow-100">
+              Featured
+            </p>
+
+            <h2 className="text-4xl font-semibold tracking-tight text-slate-100 font-display">
+              Featured <span className="text-yellow-400">Projects</span>
             </h2>
-            <p className="text-lg text-white/80">
-              Discover the most innovative student-built solutions on our platform.
+
+            <p className="text-lg text-slate-200/85">
+              Discover the most innovative student-built solutions on our
+              platform.
             </p>
           </div>
 
-          {/* Cards grid (equal-height rows) */}
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 auto-rows-fr">
-            {FEATURED_PROJECTS.map((project) => (
-              <ProjectCard key={project.id} {...project} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <ProjectSkeletonCard key={i} />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-6 text-slate-100 backdrop-blur">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-semibold">Couldn’t load featured projects</p>
+                  <p className="text-sm text-slate-200/80">{error}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  className="border-yellow-400/30 bg-yellow-400/10 text-yellow-100 hover:bg-yellow-400/15"
+                  onClick={load}
+                >
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-8 text-center text-slate-100 backdrop-blur">
+              <p className="font-semibold">No approved projects yet</p>
+              <p className="mt-1 text-sm text-slate-200/80">
+                Once projects are approved, they’ll show up here.
+              </p>
+            </div>
+          ) : (
+            <div className={`flex ${gridJustify}`}>
+              <div
+                className={[
+                  'grid gap-8 auto-rows-fr',
+                  'md:grid-cols-2',
+                  'lg:grid-cols-3',
+                  gridWidth,
+                ].join(' ')}
+              >
+                {projects.map((project) => (
+                  <div key={project.id} className="group relative rounded-2xl">
+                    <div
+                      className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-primary/25 via-yellow-400/12 to-accent/25 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100"
+                      aria-hidden="true"
+                    />
+                    <div className="relative transition-transform duration-300 group-hover:-translate-y-1">
+                      <ProjectCard {...project} variant="featuredDark" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {/* CTA */}
           <div className="flex justify-center pt-2">
             <Button
               size="lg"
               variant="outline"
-              className="group border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              className="group border-yellow-400/35 bg-yellow-400/10 text-yellow-50 hover:bg-yellow-400/15"
               onClick={handleViewAllProjects}
             >
               View All Projects

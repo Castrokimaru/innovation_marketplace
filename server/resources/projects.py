@@ -1,11 +1,18 @@
 from flask import request
 from flask_restful import Resource
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 
-from models import db, Project, UserProject, ProjectCategory, User, Category
+from models import db, Project, UserProject, ProjectCategory, User, Category, ProjectLike
 
 class ProjectList(Resource):
     def get(self):
+        # Optional JWT: works for logged-in + logged-out users
+        try:
+            verify_jwt_in_request(optional=True)
+            user_id = get_jwt_identity()
+        except Exception:
+            user_id = None
+
         projects = Project.query.all()
         result = []
 
@@ -20,11 +27,18 @@ class ProjectList(Resource):
                 } for up in p.users
             ]
 
-            
             cats = [
                 {"id": pc.category.id, "name": pc.category.name}
                 for pc in p.categories if pc.category
             ]
+
+            likes_count = ProjectLike.query.filter_by(project_id=p.id).count()
+            liked_by_me = False
+            if user_id:
+                liked_by_me = ProjectLike.query.filter_by(
+                    project_id=p.id,
+                    user_id=user_id
+                ).first() is not None
 
             result.append({
                 "id": p.id,
@@ -36,10 +50,15 @@ class ProjectList(Resource):
                 "status": p.status,
                 "created_at": str(p.created_at),
                 "team_members": team,
-                "categories": cats
+                "categories": cats,
+
+                # NEW:
+                "likes_count": likes_count,
+                "liked_by_me": liked_by_me,
             })
 
         return result, 200
+
 
     @jwt_required()
     def post(self):
