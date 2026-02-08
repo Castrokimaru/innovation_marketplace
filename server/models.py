@@ -48,6 +48,8 @@ class Project(db.Model):
     submitted_name = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(50), default="pending")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    approval_reason = db.Column(db.String(500), nullable=True)
+    rejection_reason = db.Column(db.String(500), nullable=True)
 
     # One project can have many users 
     users = db.relationship("UserProject", back_populates="project")
