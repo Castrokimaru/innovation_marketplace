@@ -17,31 +17,38 @@ class ProjectList(Resource):
         result = []
 
         for p in projects:
-            team = [
-                {
-                    "id": up.user.id,
-                    "first_name": up.user.first_name,
-                    "last_name": up.user.last_name,
-                    "email": up.user.email,
-                    "role": up.user.role.name,
-                    "project_role": up.action
-                } for up in p.users
-            ]
+            team_dict = {}
+            for up in p.users:
+                uid = up.user.id
+                if uid not in team_dict:
+                    team_dict[uid] = {
+                        "id": up.user.id,
+                        "first_name": up.user.first_name,
+                        "last_name": up.user.last_name,
+                        "email": up.user.email,
+                        "role": up.user.role.name,
+                        "project_roles": [up.action]
+                    }
+                else:
+                    if up.action not in team_dict[uid]["project_roles"]:
+                        team_dict[uid]["project_roles"].append(up.action)
 
-            cats = [
+        team = list(team_dict.values())
+
+        cats = [
                 {"id": pc.category.id, "name": pc.category.name}
                 for pc in p.categories if pc.category
             ]
 
-            likes_count = ProjectLike.query.filter_by(project_id=p.id).count()
-            liked_by_me = False
-            if user_id:
+        likes_count = ProjectLike.query.filter_by(project_id=p.id).count()
+        liked_by_me = False
+        if user_id:
                 liked_by_me = ProjectLike.query.filter_by(
                     project_id=p.id,
                     user_id=user_id
                 ).first() is not None
 
-            result.append({
+        result.append({
                 "id": p.id,
                 "title": p.title,
                 "description": p.description,
@@ -71,10 +78,11 @@ class ProjectList(Resource):
         video = data.get("video")
         technologies = data.get("technologies")
         submitted_name = data.get("submitted_name")
+        github_url = data.get("github_url") 
         team_members = data.get("team_members", [])
         category_ids = data.get("category_ids", [])
 
-        if not all([title, description, video, technologies, submitted_name]):
+        if not all([title, description, video, technologies, submitted_name, github_url]):
             return {"error": "Missing required fields"}, 400
 
         project = Project(
@@ -83,6 +91,7 @@ class ProjectList(Resource):
             video=video,
             technologies=technologies,
             submitted_name=submitted_name,
+            github_url=github_url,
         )
         db.session.add(project)
         db.session.commit()
@@ -93,11 +102,14 @@ class ProjectList(Resource):
             action="creator"
         )
         db.session.add(creator_link)
+#adds creator as contributor to the project
+        db.session.add(UserProject(
+        user_id=user_id,
+        project_id=project.id,
+        action="contributor"
+))
 
-        # Link team members but skip creator
         for member_id in team_members:
-            if member_id == user_id:
-                continue
             user = User.query.get(member_id)
             if user:
                 db.session.add(UserProject(
@@ -125,16 +137,24 @@ class ProjectDetail(Resource):
     def get(self, project_id):
         project = Project.query.get_or_404(project_id)
 
-        team = [
-            {
-                "id": up.user.id,
-                "first_name": up.user.first_name,
-                "last_name": up.user.last_name,
-                "email": up.user.email,
-                "role": up.user.role.name,
-                "project_role": up.action
-            } for up in project.users
-        ]
+        team_dict = {}
+        for up in project.users:
+            uid = up.user.id
+            if uid not in team_dict:
+                team_dict[uid] = {
+                    "id": up.user.id,
+                    "first_name": up.user.first_name,
+                    "last_name": up.user.last_name,
+                    "email": up.user.email,
+                    "role": up.user.role.name,
+                    "project_roles": [up.action]
+                }
+            else:
+                if up.action not in team_dict[uid]["project_roles"]:
+                    team_dict[uid]["project_roles"].append(up.action)
+
+        team = list(team_dict.values())
+
 
         categories = [
             {"id": pc.category.id, "name": pc.category.name}
