@@ -43,10 +43,13 @@ class Project(db.Model):
     title = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(500), nullable=False)
     video = db.Column(db.String(255), nullable=False)
+    github_url= db.Column(db.String(255), nullable=False)
     technologies = db.Column(db.String(255), nullable=False)
     submitted_name = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(50), default="pending")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    approval_reason = db.Column(db.String(500), nullable=True)
+    rejection_reason = db.Column(db.String(500), nullable=True)
 
     # One project can have many users 
     users = db.relationship("UserProject", back_populates="project")

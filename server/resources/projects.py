@@ -6,7 +6,6 @@ from models import db, Project, UserProject, ProjectCategory, User, Category, Pr
 
 class ProjectList(Resource):
     def get(self):
-        # Optional JWT: works for logged-in + logged-out users
         try:
             verify_jwt_in_request(optional=True)
             user_id = get_jwt_identity()
@@ -52,7 +51,7 @@ class ProjectList(Resource):
                 "team_members": team,
                 "categories": cats,
 
-                # NEW:
+                
                 "likes_count": likes_count,
                 "liked_by_me": liked_by_me,
             })
