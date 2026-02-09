@@ -4,9 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_req
 
 from models import db, Project, UserProject, ProjectCategory, User, Category, ProjectLike
 
-# -----------------------------
-# Project List (Existing Code)
-# -----------------------------
+
 class ProjectList(Resource):
     def get(self):
         try:
@@ -78,7 +76,6 @@ class ProjectList(Resource):
         if not all([title, description, video, technologies, submitted_name]):
             return {"error": "Missing required fields"}, 400
 
-        # Creating the project
         project = Project(
             title=title,
             description=description,
@@ -89,7 +86,6 @@ class ProjectList(Resource):
         db.session.add(project)
         db.session.commit()
 
-        # Linking creator
         creator_link = UserProject(
             user_id=user_id,
             project_id=project.id,
@@ -109,7 +105,7 @@ class ProjectList(Resource):
                     action="contributor"
                 ))
 
-        # Link categories
+        
         for cat_id in category_ids:
             category = Category.query.get(cat_id)
             if category:
@@ -123,9 +119,6 @@ class ProjectList(Resource):
         return {"message": "Project created", "project_id": project.id}, 201
 
 
-# -----------------------------
-# Project Detail (NEW CRUD)
-# -----------------------------
 class ProjectDetail(Resource):
     @jwt_required()
     def get(self, project_id):
