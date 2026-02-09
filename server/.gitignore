@@ -31,4 +31,8 @@ venv/
 .mypy_cache/
 .ruff_cache/
 server/instance/
+server/instance/*
+server/instance/app.db
+*.db
+
 
