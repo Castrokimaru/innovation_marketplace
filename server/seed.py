@@ -92,13 +92,19 @@ def seed_projects(students):
     categories = Category.query.all()
 
     for _ in range(10):
+        project_title = fake.sentence(nb_words=4).rstrip(".")
+        slug = "-".join(project_title.lower().split())
+
         project = Project(
-            title=fake.sentence(nb_words=4),
+            title=project_title,
             description=fake.paragraph(nb_sentences=4),
             video=fake.url(),
+            github_url=f"https://github.com/{fake.user_name()}/{slug}",
             technologies=", ".join(fake.words(4)),
             submitted_name=fake.name(),
-            status=random.choice(["pending", "approved"]),
+            approval_reason=fake.sentence(),
+            rejection_reason=fake.sentence(),
+            status=random.choice(["pending", "approved", "rejected"]),
         )
         db.session.add(project)
         db.session.commit()
@@ -136,6 +142,7 @@ def seed_projects(students):
             )
 
         db.session.commit()
+
 
 def seed_merchandise():
     items = [
