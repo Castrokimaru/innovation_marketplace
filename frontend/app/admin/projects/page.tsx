@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,7 +11,7 @@ import { cn } from '@/lib/utils'
 
 import { Search, Filter, Eye, CheckCircle, Clock, XCircle, Package, BadgeCheck, Hourglass } from 'lucide-react'
 
-import { fetchProjects, approveProject, rejectProject, type ProjectRow } from '@/lib/api/admin-projects'
+import { fetchProjects, type ProjectRow } from '@/lib/api/admin-projects'
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -55,11 +56,9 @@ function LoadingTableShell() {
 
 export default function ProjectsManagement() {
   const { data: session } = useSession()
-
-  const token = (session as any)?.accessToken as string | undefined
   const isAdmin = (session as any)?.user?.role === 'admin'
 
-  const [projects, setProjects] = useState<ProjectRow[]>([])
+  const [rows, setRows] = useState<ProjectRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -76,11 +75,11 @@ export default function ProjectsManagement() {
     try {
       setLoading(true)
       setError(null)
-      const rows = await fetchProjects()
-      setProjects(Array.isArray(rows) ? rows : [])
+      const payload = await fetchProjects()
+      setRows(payload.rows)
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load projects')
-      setProjects([])
+      setRows([])
     } finally {
       setLoading(false)
     }
@@ -90,60 +89,31 @@ export default function ProjectsManagement() {
     load()
   }, [load])
 
-  const filteredProjects = useMemo(() => {
+  const filteredRows = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
-    return projects.filter((p) => {
-      const matchesSearch =
-        !q || p.title.toLowerCase().includes(q) || p.author.toLowerCase().includes(q)
+    return rows.filter((p) => {
+      const matchesSearch = !q || p.title.toLowerCase().includes(q) || p.author.toLowerCase().includes(q)
       const matchesFilter = filterStatus === 'all' || p.status === filterStatus
       return matchesSearch && matchesFilter
     })
-  }, [projects, searchTerm, filterStatus])
+  }, [rows, searchTerm, filterStatus])
 
   const stats = useMemo(() => {
-    const total = projects.length
-    const approved = projects.filter((p) => p.status === 'approved').length
-    const pending = projects.filter((p) => p.status === 'pending').length
-    const rejected = projects.filter((p) => p.status === 'rejected').length
-    return { total, approved, pending, rejected, shown: filteredProjects.length }
-  }, [projects, filteredProjects.length])
-
-  async function onApprove(id: number) {
-    if (!token) {
-      setError('Missing token (not authenticated)')
-      return
-    }
-    try {
-      // optimistic update
-      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'approved' } : p)))
-      await approveProject(id, token)
-    } catch (e: any) {
-      setError(e?.message ?? 'Approve failed')
-      await load()
-    }
-  }
-
-  async function onReject(id: number) {
-    if (!token) {
-      setError('Missing token (not authenticated)')
-      return
-    }
-    try {
-      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'rejected' } : p)))
-      await rejectProject(id, token)
-    } catch (e: any) {
-      setError(e?.message ?? 'Reject failed')
-      await load()
-    }
-  }
+    const total = rows.length
+    const approved = rows.filter((p) => p.status === 'approved').length
+    const pending = rows.filter((p) => p.status === 'pending').length
+    const rejected = rows.filter((p) => p.status === 'rejected').length
+    return { total, approved, pending, rejected, shown: filteredRows.length }
+  }, [rows, filteredRows.length])
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
-          <p className="mt-2 text-muted-foreground">Approve, review, or manage student projects</p>
+          <p className="mt-2 text-muted-foreground">
+            Open a project to review details, then approve or reject.
+          </p>
         </div>
 
         <div className="flex gap-2">
@@ -156,7 +126,6 @@ export default function ProjectsManagement() {
         </div>
       </div>
 
-      {/* KPI cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Card className="p-6 sm:col-span-1">
           <div className="flex items-start justify-between">
@@ -211,7 +180,6 @@ export default function ProjectsManagement() {
         </Card>
       </div>
 
-      {/* Filters */}
       <Card className="p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1">
@@ -247,23 +215,6 @@ export default function ProjectsManagement() {
             ))}
           </div>
         </div>
-
-        {/* active filter chips */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-foreground/60">
-          {searchTerm.trim() ? (
-            <span className="rounded-full bg-muted px-3 py-1 text-xs">
-              Query: <span className="font-medium text-foreground">{searchTerm.trim()}</span>
-            </span>
-          ) : null}
-
-          {filterStatus !== 'all' ? (
-            <span className="rounded-full bg-muted px-3 py-1 text-xs">
-              Status: <span className="font-medium text-foreground">{filterStatus}</span>
-            </span>
-          ) : null}
-
-          {!hasActiveFilters ? <span>No active filters</span> : null}
-        </div>
       </Card>
 
       {loading && <LoadingTableShell />}
@@ -280,80 +231,69 @@ export default function ProjectsManagement() {
       )}
 
       {!loading && !error && (
-        <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="px-6 py-4 text-left font-semibold text-foreground">Project</th>
-                    <th className="px-6 py-4 text-left font-semibold text-foreground">Author</th>
-                    <th className="px-6 py-4 text-left font-semibold text-foreground">Category</th>
-                    <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
-                    <th className="px-6 py-4 text-left font-semibold text-foreground">Submitted</th>
-                    <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
-                  </tr>
-                </thead>
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Project</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Author</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Category</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
+                  <th className="px-6 py-4 text-left font-semibold text-foreground">Submitted</th>
+                  <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {filteredProjects.map((project) => (
-                    <tr key={project.id} className="border-b border-border/50 hover:bg-muted/30">
-                      <td className="px-6 py-4">
-                        <p className="font-medium text-foreground">{project.title}</p>
-                      </td>
-                      <td className="px-6 py-4 text-foreground/70">{project.author}</td>
-                      <td className="px-6 py-4 text-foreground/70">{project.category}</td>
+              <tbody>
+                {filteredRows.map((project) => (
+                  <tr key={project.id} className="border-b border-border/50 hover:bg-muted/30">
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-foreground">{project.title}</p>
+                    </td>
+                    <td className="px-6 py-4 text-foreground/70">{project.author}</td>
+                    <td className="px-6 py-4 text-foreground/70">{project.category}</td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(project.status)}
-                          <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(project.status))}>
-                            {project.status}
-                          </span>
-                        </div>
-                      </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(project.status)}
+                        <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(project.status))}>
+                          {project.status}
+                        </span>
+                      </div>
+                    </td>
 
-                      <td className="px-6 py-4 text-foreground/70">{project.submitted}</td>
+                    <td className="px-6 py-4 text-foreground/70">{project.submitted}</td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex justify-center gap-2">
-                          {isAdmin && project.status === 'pending' && (
-                            <>
-                              <Button size="sm" onClick={() => onApprove(project.id)}>
-                                Approve
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => onReject(project.id)}>
-                                Reject
-                              </Button>
-                            </>
-                          )}
-
-                          <Button variant="ghost" size="sm" title="View (UI only)">
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center">
+                        <Link href={`/admin/projects/${project.id}`}>
+                          <Button variant="ghost" size="sm" title="Review project">
                             <Eye className="h-4 w-4" />
                           </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
 
-                  {filteredProjects.length === 0 && (
-                    <tr>
-                      <td className="px-6 py-12 text-center text-muted-foreground" colSpan={6}>
-                        No projects match your filters.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Showing {filteredProjects.length} of {projects.length} projects
-            </p>
+                {filteredRows.length === 0 && (
+                  <tr>
+                    <td className="px-6 py-12 text-center text-muted-foreground" colSpan={6}>
+                      No projects match your filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </>
+
+          {!isAdmin && (
+            <div className="border-t px-6 py-3 text-xs text-muted-foreground">
+              You must be signed in as admin to approve/reject projects.
+            </div>
+          )}
+        </Card>
       )}
     </div>
   )

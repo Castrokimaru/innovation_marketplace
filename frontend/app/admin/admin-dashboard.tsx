@@ -5,6 +5,14 @@ import { useSession } from 'next-auth/react'
 
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 import {
   BarChart,
@@ -19,11 +27,15 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-import { Users, Package, ShoppingBag, TrendingUp, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
+import { Users, Package, ShoppingBag, TrendingUp, ArrowUpRight, ArrowDownLeft, Github } from 'lucide-react'
 
 type BackendProject = {
   id: number
   title: string
+  description?: string
+  video?: string
+  github_url?: string
+  technologies?: string
   submitted_name: string
   status: 'approved' | 'pending' | 'rejected'
   created_at: string
@@ -75,6 +87,15 @@ function getStatusColor(status: string) {
     default:
       return 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
   }
+}
+
+function normalizeGitHubUrl(url?: string | null) {
+  if (!url) return null
+  const trimmed = url.trim()
+  if (!trimmed) return null
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
+  if (/^[\w.-]+\/[\w.-]+$/.test(trimmed)) return `https://github.com/${trimmed}`
+  return trimmed
 }
 
 async function fetchProjects(): Promise<BackendProject[]> {
@@ -149,6 +170,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [usersError, setUsersError] = useState<string | null>(null)
+
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const selected = selectedId ? projects.find((p) => p.id === selectedId) : null
 
   useEffect(() => {
     const run = async () => {
@@ -363,9 +387,7 @@ export default function AdminDashboard() {
             </BarChart>
           </ResponsiveContainer>
 
-          <p className="mt-3 text-xs text-muted-foreground">
-            Sales is 0 because your backend doesn’t expose revenue totals yet.
-          </p>
+          <p className="mt-3 text-xs text-muted-foreground">Sales is 0 because your backend doesn’t expose revenue totals yet.</p>
         </Card>
       </div>
 
@@ -396,17 +418,77 @@ export default function AdminDashboard() {
                   <td className="px-4 py-3 font-medium text-foreground">{project.title}</td>
                   <td className="px-4 py-3 text-foreground/70">{project.author}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={cn('inline-block px-3 py-1 rounded-full text-xs font-medium', getStatusColor(project.status))}
-                    >
+                    <span className={cn('inline-block px-3 py-1 rounded-full text-xs font-medium', getStatusColor(project.status))}>
                       {project.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-foreground/70">{project.date}</td>
                   <td className="px-4 py-3">
-                    <Button variant="ghost" size="sm" onClick={() => (window.location.href = `/admin/projects`)}>
-                      Review
-                    </Button>
+                    <Dialog
+                      onOpenChange={(open) => {
+                        if (!open) setSelectedId(null)
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedId(project.id)}>
+                          View
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>{selected?.title ?? 'Project details'}</DialogTitle>
+                          <DialogDescription>Quick view. Use “View All” to approve/reject.</DialogDescription>
+                        </DialogHeader>
+
+                        {!selected ? (
+                          <div className="text-sm text-muted-foreground">Loading…</div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div className="rounded-lg border p-3">
+                                <p className="text-xs text-muted-foreground">Submitted by</p>
+                                <p className="mt-1 text-sm font-medium">{selected.submitted_name || '—'}</p>
+                              </div>
+                              <div className="rounded-lg border p-3">
+                                <p className="text-xs text-muted-foreground">Created</p>
+                                <p className="mt-1 text-sm font-medium">{String(selected.created_at).slice(0, 10) || '—'}</p>
+                              </div>
+                            </div>
+
+                            <div className="rounded-lg border p-3">
+                              <p className="text-xs text-muted-foreground">GitHub</p>
+                              {normalizeGitHubUrl(selected.github_url) ? (
+                                <a
+                                  href={normalizeGitHubUrl(selected.github_url)!}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="mt-2 inline-flex items-center gap-2 text-sm text-primary underline underline-offset-4"
+                                >
+                                  <Github className="h-4 w-4" />
+                                  {normalizeGitHubUrl(selected.github_url)}
+                                </a>
+                              ) : (
+                                <p className="mt-2 text-sm text-muted-foreground">No GitHub URL provided.</p>
+                              )}
+                            </div>
+
+                            {selected.description ? (
+                              <div className="rounded-lg border p-3">
+                                <p className="text-xs text-muted-foreground">Description</p>
+                                <p className="mt-2 text-sm whitespace-pre-wrap">{selected.description}</p>
+                              </div>
+                            ) : null}
+
+                            <div className="flex justify-end">
+                              <Button variant="outline" size="sm" onClick={() => (window.location.href = '/admin/projects')}>
+                                Go to approvals
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </DialogContent>
+                    </Dialog>
                   </td>
                 </tr>
               ))}

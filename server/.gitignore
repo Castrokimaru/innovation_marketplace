@@ -1,3 +1,4 @@
+es
 # Generated .gitignore patterns
 
 # Python
@@ -30,5 +31,17 @@ venv/
 .ipynb_checkpoints
 .mypy_cache/
 .ruff_cache/
+<<<<<<< HEAD
 server/instance/
+server/instance/*
+server/instance/app.db
+*.db
+=======
+instance/
+instance/*
+instance/app.db
+*.db
+server/instance/app.db
+>>>>>>> 5466b6e (Ignore server instance files and local sqlite db)
+
 
