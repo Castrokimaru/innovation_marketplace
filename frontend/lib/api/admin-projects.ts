@@ -12,7 +12,9 @@ async function readError(res: Response) {
   try {
     if (contentType.includes('application/json')) {
       const data = await res.json()
-      return typeof data?.message === 'string' ? data.message : JSON.stringify(data)
+      if (typeof data?.message === 'string') return data.message
+      if (typeof data?.error === 'string') return data.error
+      return JSON.stringify(data)
     }
   } catch {
     // ignore
@@ -25,12 +27,12 @@ async function readError(res: Response) {
   }
 }
 
-// Backend ProjectList.get()
 export type BackendProject = {
   id: number
   title: string
   description: string
   video: string
+  github_url: string
   technologies: string
   submitted_name: string
   status: 'approved' | 'pending' | 'rejected'
@@ -43,9 +45,10 @@ export type BackendProject = {
     role: string
   }>
   categories: Array<{ id: number; name: string }>
+  approval_reason?: string | null
+  rejection_reason?: string | null
 }
 
-// UI shape for table
 export type ProjectRow = {
   id: number
   title: string
@@ -53,6 +56,11 @@ export type ProjectRow = {
   category: string
   status: 'approved' | 'pending' | 'rejected'
   submitted: string
+}
+
+export type ProjectsPayload = {
+  rows: ProjectRow[]
+  byId: Record<number, BackendProject>
 }
 
 function mapToRow(p: BackendProject): ProjectRow {
@@ -66,7 +74,7 @@ function mapToRow(p: BackendProject): ProjectRow {
   }
 }
 
-export async function fetchProjects(): Promise<ProjectRow[]> {
+export async function fetchProjects(): Promise<ProjectsPayload> {
   const res = await fetch(`${BASE}/projects`, { cache: 'no-store' })
 
   if (!res.ok) {
@@ -76,16 +84,21 @@ export async function fetchProjects(): Promise<ProjectRow[]> {
   }
 
   const data = (await res.json()) as unknown
-  if (!Array.isArray(data)) return []
-  return (data as BackendProject[]).map(mapToRow)
+  const arr = Array.isArray(data) ? (data as BackendProject[]) : []
+
+  const byId: Record<number, BackendProject> = {}
+  for (const p of arr) byId[p.id] = p
+
+  return { rows: arr.map(mapToRow), byId }
 }
 
-export async function approveProject(projectId: number, token: string) {
+export async function approveProject(projectId: number, token: string, reason?: string) {
   if (!token) throw new Error('Missing admin token. Please sign in again.')
 
   const res = await fetch(`${BASE}/admin/projects/${projectId}/approve`, {
     method: 'POST',
     headers: authHeaders(token),
+    body: JSON.stringify({ reason: reason ?? '' }),
   })
 
   if (!res.ok) {
@@ -96,19 +109,19 @@ export async function approveProject(projectId: number, token: string) {
         : res.status === 403
           ? 'Forbidden (403). Admin access required.'
           : `Approve failed (${res.status}).`
-
     throw new Error(details ? `${baseMsg} ${details}` : baseMsg)
   }
 
   return res.json().catch(() => ({}))
 }
 
-export async function rejectProject(projectId: number, token: string) {
+export async function rejectProject(projectId: number, token: string, reason?: string) {
   if (!token) throw new Error('Missing admin token. Please sign in again.')
 
   const res = await fetch(`${BASE}/admin/projects/${projectId}/reject`, {
     method: 'POST',
     headers: authHeaders(token),
+    body: JSON.stringify({ reason: reason ?? '' }),
   })
 
   if (!res.ok) {
@@ -119,7 +132,6 @@ export async function rejectProject(projectId: number, token: string) {
         : res.status === 403
           ? 'Forbidden (403). Admin access required.'
           : `Reject failed (${res.status}).`
-
     throw new Error(details ? `${baseMsg} ${details}` : baseMsg)
   }
 
