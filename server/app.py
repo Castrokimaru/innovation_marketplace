@@ -5,21 +5,23 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 from models import db
-
+import os
 
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList, ProjectDetail
 from resources.merchandise import MerchandiseList, MerchandiseItem
 from resources.orders import OrderCreate, OrderDelete
-from resources.admin import CategoryCreate, ApproveProject, RejectProject
+from resources.admin import CategoryCreate, ApproveProject, RejectProject, AdminUserList
 from resources.recruiters import BrowseProjects
+from resources.likes import ProjectLikeToggle
+
 
 def create_app():
     app = Flask(__name__)
 
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["JWT_SECRET_KEY"] = "dev-secret-key" 
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret-key")
 
     db.init_app(app)
     Migrate(app, db)
@@ -34,8 +36,13 @@ def create_app():
     api.add_resource(UpdateProfile, "/profile")
 
     api.add_resource(ProjectList, "/projects")
+<<<<<<< HEAD
     api.add_resource(ProjectDetail, "/projects/<int:project_id>")
 
+=======
+    api.add_resource(ProjectLikeToggle, "/projects/<int:project_id>/like")
+    
+>>>>>>> origin/dev
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(MerchandiseItem, "/merchandise/<int:id>")
 
@@ -45,6 +52,7 @@ def create_app():
     api.add_resource(CategoryCreate, "/admin/categories")
     api.add_resource(ApproveProject, "/admin/projects/<int:project_id>/approve")
     api.add_resource(RejectProject, "/admin/projects/<int:project_id>/reject")
+    api.add_resource(AdminUserList, "/admin/users")
 
     api.add_resource(BrowseProjects, "/recruiters/projects")
     @app.route("/")

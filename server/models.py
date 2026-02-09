@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from datetime import datetime
+from sqlalchemy import UniqueConstraint
+
 
 metadata = MetaData()
 
@@ -41,10 +43,13 @@ class Project(db.Model):
     title = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(500), nullable=False)
     video = db.Column(db.String(255), nullable=False)
+    github_url= db.Column(db.String(255), nullable=False)
     technologies = db.Column(db.String(255), nullable=False)
     submitted_name = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(50), default="pending")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    approval_reason = db.Column(db.String(500), nullable=True)
+    rejection_reason = db.Column(db.String(500), nullable=True)
 
     # One project can have many users 
     users = db.relationship("UserProject", back_populates="project")
@@ -131,3 +136,18 @@ class OrderMerchandise(db.Model):
 
     order = db.relationship("Order", back_populates="items")
     merchandise = db.relationship("Merchandise", back_populates="orders")
+
+class ProjectLike(db.Model):
+    __tablename__ = "project_likes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User")
+    project = db.relationship("Project")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "project_id", name="uq_user_project_like"),
+    )

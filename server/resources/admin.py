@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from models import db, User, Project, Category, UserProject
+from models import db, User, Project, Category
 
 #adding category
 class CategoryCreate(Resource):
@@ -39,10 +39,14 @@ class ApproveProject(Resource):
         project = Project.query.get(project_id)
         if not project:
             return {"error": "Project not found"}, 404
+        
+        data = request.get_json()
+        reason = data.get("reason", "")
 
         project.status = "approved"
+        project.approval_reason = reason
         db.session.commit()
-        return {"message": f"Project '{project.title}' approved"}, 200
+        return {"message": f"Project '{project.title}' approved", "reason": reason}, 200
 
 
 class RejectProject(Resource):
@@ -57,7 +61,35 @@ class RejectProject(Resource):
         project = Project.query.get(project_id)
         if not project:
             return {"error": "Project not found"}, 404
+        
+        data = request.get_json()
+        reason = data.get("reason", "")
 
         project.status = "rejected"
+        project.rejection_reason = reason
         db.session.commit()
-        return {"message": f"Project '{project.title}' rejected"}, 200
+        return {"message": f"Project '{project.title}' rejected", "reason": reason}, 200
+
+class AdminUserList(Resource):
+    @jwt_required()
+    def get(self):
+        current_user_id = get_jwt_identity()
+        current_user = User.query.get(current_user_id)
+
+        if not current_user or current_user.role.name != "admin":
+            return {"error": "Admin access required"}, 403
+
+        users = User.query.all()
+
+        return [
+            {
+                "id": u.id,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
+                "email": u.email,
+                "role": u.role.name,
+                "status": u.status,
+                "created_at": u.created_at.isoformat()
+            }
+            for u in users
+        ], 200

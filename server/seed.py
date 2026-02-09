@@ -1,72 +1,216 @@
 from app import app
-from models import db, User, UserRole
+from models import (db,User,UserRole,Project,UserProject,Category,ProjectCategory,Merchandise,Order,OrderMerchandise,)
 from datetime import datetime
 from werkzeug.security import generate_password_hash
+from faker import Faker
+import random
+
+fake = Faker()
+
+def clear_db():
+    OrderMerchandise.query.delete()
+    Order.query.delete()
+    UserProject.query.delete()
+    ProjectCategory.query.delete()
+    Project.query.delete()
+    Merchandise.query.delete()
+    Category.query.delete()
+    User.query.delete()
+    UserRole.query.delete()
+    db.session.commit()
 
 def seed_roles():
     roles = [
-        {
-            "name": "admin",
-            "description": "Full system access: approve projects, manage users, manage merchandise inventory, and view all system data."
-        },
-        {
-            "name": "student",
-            "description": "Can submit and manage own projects, add contributors, view project status, and purchase merchandise."
-        },
-        {
-            "name": "contributor",
-            "description": "Can be added to projects as a team member, collaborate on projects, view project details, and purchase merchandise."
-        },
-        {
-            "name": "recruiter",
-            "description": "Can browse approved projects, contact or hire project teams, and purchase merchandise."
-        },
+        ("admin", "Has full system access"),
+        ("student", "Can create and collaborate on projects"),
+        ("recruiter", "Can browse approved projects"),
     ]
 
-    for role in roles:
-        exists = UserRole.query.filter_by(name=role["name"]).first()
-        if not exists:
-            new_role = UserRole(
-                name=role["name"],
-                description=role["description"]
-            )
-            db.session.add(new_role)
+    for name, desc in roles:
+        db.session.add(UserRole(name=name, description=desc))
 
     db.session.commit()
 
-def clear_seed_data():
-    admin = User.query.filter_by(email="admin@moringa.co.ke").first()
-    if admin:
-        db.session.delete(admin)
-
-    UserRole.query.delete()
-
-    db.session.commit()
-
-def seed_admin():
+def seed_users():
     admin_role = UserRole.query.filter_by(name="admin").first()
+    student_role = UserRole.query.filter_by(name="student").first()
+    recruiter_role = UserRole.query.filter_by(name="recruiter").first()
 
-    admin_exists = User.query.filter_by(email="admin@moringa.co.ke").first()
-    if admin_exists:
-        return
-
-    
     admin = User(
         first_name="Fred",
         last_name="Chen",
         email="admin@moringa.co.ke",
         password_hash=generate_password_hash("Admin1234"),
         role_id=admin_role.id,
+        status="active",
         created_at=datetime.utcnow(),
-        status="active"
     )
-
     db.session.add(admin)
+
+    students = []
+    for _ in range(15):
+        student = User(
+            first_name=fake.first_name(),
+            last_name=fake.last_name(),
+            email=fake.unique.email(),
+            password_hash=generate_password_hash("Student1234"),
+            role_id=student_role.id,
+            status="active",
+        )
+        students.append(student)
+        db.session.add(student)
+
+    for _ in range(5):
+        db.session.add(
+            User(
+                first_name=fake.first_name(),
+                last_name=fake.last_name(),
+                email=fake.unique.email(),
+                password_hash=generate_password_hash("Recruiter1234"),
+                role_id=recruiter_role.id,
+                status="active",
+            )
+        )
+
     db.session.commit()
+    return students  
+
+def seed_categories():
+    names = ["HealthTech", "EdTech", "FinTech", "AgriTech", "AI", "E-Commerce"]
+
+    for name in names:
+        db.session.add(
+            Category(
+                name=name,
+                description=fake.sentence(),
+            )
+        )
+
+    db.session.commit()
+
+def seed_projects(students):
+    categories = Category.query.all()
+
+    for _ in range(10):
+        project = Project(
+            title=fake.sentence(nb_words=4),
+            description=fake.paragraph(nb_sentences=4),
+            video=fake.url(),
+            technologies=", ".join(fake.words(4)),
+            submitted_name=fake.name(),
+            status=random.choice(["pending", "approved"]),
+        )
+        db.session.add(project)
+        db.session.commit()
+
+        owner = random.choice(students)
+
+        db.session.add(
+            UserProject(
+                user_id=owner.id,
+                project_id=project.id,
+                action="owner",
+            )
+        )
+
+        contributors = random.sample(
+            [s for s in students if s.id != owner.id],
+            k=random.randint(1, 3),
+        )
+
+        for student in contributors:
+            db.session.add(
+                UserProject(
+                    user_id=student.id,
+                    project_id=project.id,
+                    action="contributor",
+                )
+            )
+
+        for category in random.sample(categories, k=2):
+            db.session.add(
+                ProjectCategory(
+                    project_id=project.id,
+                    category_id=category.id,
+                )
+            )
+
+        db.session.commit()
+
+def seed_merchandise():
+    items = [
+        ("Moringa Hoodie", 3500),
+        ("Moringa Mug", 1200),
+        ("Moringa T-Shirt", 2500),
+        ("Laptop Sticker Pack", 800),
+    ]
+
+    for name, price in items:
+        db.session.add(
+            Merchandise(
+                name=name,
+                description=fake.sentence(),
+                price=price,
+                stock=random.randint(10, 50),
+                image_url=fake.image_url(),
+            )
+        )
+
+    db.session.commit()
+
+def seed_orders():
+    users = User.query.all()
+    merch = Merchandise.query.all()
+
+    for _ in range(5):
+        user = random.choice(users)
+        order = Order(
+            user_id=user.id,
+            total_amount=0,
+            status="completed",
+        )
+        db.session.add(order)
+        db.session.commit()
+
+        total = 0
+        for item in random.sample(merch, k=2):
+            qty = random.randint(1, 3)
+            total += float(item.price) * qty
+
+            db.session.add(
+                OrderMerchandise(
+                    order_id=order.id,
+                    merchandise_id=item.id,
+                    quantity=qty,
+                    price_at_purchase=item.price,
+                )
+            )
+
+        order.total_amount = total
+        db.session.commit()
 
 
 if __name__ == "__main__":
     with app.app_context():
+        print("Cleared database")
+        clear_db()
+
+        print("Seed roles")
         seed_roles()
-        seed_admin()
-        print("Database seeded")
+
+        print("Seed users")
+        students = seed_users()
+
+        print("Seed categories")
+        seed_categories()
+
+        print("Seed projects")
+        seed_projects(students)
+
+        print("Seed merchandise")
+        seed_merchandise()
+
+        print("Seed orders")
+        seed_orders()
+
+        print("Database seeded successfully")

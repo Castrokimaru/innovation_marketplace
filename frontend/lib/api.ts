@@ -1,9 +1,10 @@
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
 
-function authHeaders(token?: string) {
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  }
+function authHeaders(token?: string): HeadersInit {
+  if (!token) return {}
+
+  const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
+  return { Authorization: `Bearer ${cleaned}` }
 }
 
 export async function fetchMerchandise() {
@@ -75,21 +76,35 @@ export async function createOrder(
   return res.json()
 }
 
+export type CreateProjectPayload = {
+  title: string
+  description: string
+  video: string
+  technologies: string
+  submitted_name: string
+  team_members?: number[]
+  category_ids?: number[]
+}
+
 export async function createProject(payload: any, token?: string) {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' }
+
+  if (token) {
+    const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
+    headers['Authorization'] = `Bearer ${cleaned}`
+  }
+
   const res = await fetch(`${BASE}/projects`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(token),
-    },
+    headers,
     body: JSON.stringify(payload),
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || 'Failed to create project')
-  }
-  return res.json()
+
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || data.message || 'Failed to create project')
+  return data
 }
+
 
 export async function signup(payload: {
   first_name: string
@@ -117,3 +132,31 @@ export async function fetchApprovedProjects() {
   return res.json()
 }
 
+export type UpdateProfilePayload = {
+  first_name?: string
+  last_name?: string
+  password?: string
+}
+
+export async function updateProfile(payload: UpdateProfilePayload, token?: string) {
+  const res = await fetch(`${BASE}/profile`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const data = await res.json().catch(() => ({}))
+
+  if (!res.ok) {
+    throw new Error(data.error || data.message || 'Failed to update profile')
+  }
+
+  // backend returns: { message, user: { id, first_name, last_name, email } }
+  return data as {
+    message: string
+    user: { id: number; first_name: string; last_name: string; email: string }
+  }
+}

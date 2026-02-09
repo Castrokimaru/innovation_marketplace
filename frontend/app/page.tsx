@@ -7,6 +7,7 @@ import { WhyChooseUs } from '@/components/why-choose-us'
 import { CTASection } from '@/components/cta-section'
 import { Footer } from '@/components/footer'
 import { SessionProvider } from "next-auth/react"
+import { MerchandiseSection } from '@/components/merchandise-section'
 
 export default function Home({session}:any) {
   return (
@@ -17,8 +18,10 @@ export default function Home({session}:any) {
         <Hero />
         <FeaturedProjects />
         <HowItWorks />
+        <MerchandiseSection/>
         <WhyChooseUs />
         <CTASection />
+      
       </main>
       <Footer />
     </div>

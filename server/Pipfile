@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-faker = "*"
 flask = "*"
 flask-migrate = "*"
 flask-restful = "*" 
@@ -21,6 +20,7 @@ python-dotenv = "*"
 requests = "*"
 pillow = "*"            
 email-validator = "*"   
+faker = "*"
 
 [dev-packages]
 

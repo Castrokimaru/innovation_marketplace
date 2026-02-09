@@ -1,19 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Plus, Search, RefreshCcw, LogOut, LayoutDashboard, FolderOpen } from 'lucide-react'
 
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-
-import Link from 'next/link'
-import { Plus, Search, RefreshCcw, LogOut } from 'lucide-react'
 
 import { fetchMyProjectsFromAllProjects } from '@/lib/api'
 import { ProjectCard } from '@/components/project-card'
@@ -47,6 +44,7 @@ type UiProjectCard = {
   author: string
   views?: number
   rating?: number
+  status?: string
 }
 
 const CATEGORY_OPTIONS = ['All', 'HealthTech', 'EdTech', 'FinTech', 'AgriTech', 'Other'] as const
@@ -59,17 +57,83 @@ function normalizeTech(value: unknown): string[] {
   return []
 }
 
+function normalizeStatus(s?: string) {
+  return (s ?? '').trim().toLowerCase()
+}
+
+function statusLabel(s?: string) {
+  const v = normalizeStatus(s)
+  if (v.includes('pend')) return 'Pending'
+  if (v.includes('approv') || v.includes('accept')) return 'Approved'
+  if (v.includes('reject') || v.includes('declin')) return 'Rejected'
+  return s || 'Unknown'
+}
+
+function statusBadgeVariant(label: string): 'default' | 'secondary' | 'destructive' {
+  const v = label.toLowerCase()
+  if (v === 'approved') return 'default'
+  if (v === 'pending') return 'secondary'
+  if (v === 'rejected') return 'destructive'
+  return 'secondary'
+}
+
 function LoadingShell() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="container mx-auto px-4 py-10">
-        <div className="h-8 w-72 rounded bg-muted animate-pulse" />
-        <div className="mt-6 h-10 rounded bg-muted animate-pulse" />
-        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-80 rounded bg-muted animate-pulse" />
+      <main className="container mx-auto max-w-6xl px-4 py-10">
+        {/* Header skeleton */}
+        <div className="space-y-3">
+          <div className="h-8 w-72 rounded bg-muted animate-pulse" />
+          <div className="h-4 w-96 rounded bg-muted animate-pulse" />
+          <div className="mt-4 flex gap-3">
+            <div className="h-10 w-32 rounded bg-muted animate-pulse" />
+            <div className="h-10 w-40 rounded bg-muted animate-pulse" />
+            <div className="h-10 w-28 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+
+        {/* KPI skeletons */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="p-4">
+              <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+              <div className="mt-3 h-8 w-16 rounded bg-muted animate-pulse" />
+            </Card>
           ))}
+        </div>
+
+        {/* Filters skeleton */}
+        <Card className="mt-8 p-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="h-10 rounded bg-muted animate-pulse" />
+            <div className="h-10 rounded bg-muted animate-pulse" />
+            <div className="h-10 rounded bg-muted animate-pulse" />
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="h-4 w-44 rounded bg-muted animate-pulse" />
+            <div className="h-8 w-24 rounded bg-muted animate-pulse" />
+          </div>
+        </Card>
+
+        {/* Grid skeleton */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between">
+            <div className="h-7 w-40 rounded bg-muted animate-pulse" />
+            <div className="h-6 w-16 rounded bg-muted animate-pulse" />
+          </div>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="h-80 p-4">
+                <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+                <div className="mt-3 h-6 w-2/3 rounded bg-muted animate-pulse" />
+                <div className="mt-2 h-4 w-full rounded bg-muted animate-pulse" />
+                <div className="mt-2 h-4 w-5/6 rounded bg-muted animate-pulse" />
+                <div className="mt-6 h-8 w-32 rounded bg-muted animate-pulse" />
+              </Card>
+            ))}
+          </div>
         </div>
       </main>
       <Footer />
@@ -77,9 +141,36 @@ function LoadingShell() {
   )
 }
 
+function EmptyState() {
+  return (
+    <Card className="mt-6 p-10">
+      <div className="mx-auto flex max-w-xl flex-col items-center text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+          <FolderOpen className="h-7 w-7 text-foreground/60" />
+        </div>
+        <p className="mt-4 text-lg font-semibold">No projects found</p>
+        <p className="mt-2 text-sm text-foreground/70">
+          Submit your first project to showcase your work. You can also adjust filters to see results.
+        </p>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/submit-project">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Submit Project
+            </Button>
+          </Link>
+          <Link href="/student-dashboard/profile">
+            <Button variant="outline">Edit Profile</Button>
+          </Link>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 export default function StudentDashboard() {
   const { data: session, status } = useSession()
-  const router = useRouter()
 
   const [projects, setProjects] = useState<ApiProject[]>([])
   const [loadingProjects, setLoadingProjects] = useState(true)
@@ -88,65 +179,41 @@ export default function StudentDashboard() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<CategoryFilter>('All')
   const [tech, setTech] = useState('All')
-
   const [signingOut, setSigningOut] = useState(false)
 
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session || session.user.role !== 'student') {
-      router.replace('/auth/signin')
-    }
-  }, [session, status, router])
-
   const token = session?.accessToken
-  const userId = session?.user?.id
+  const username = session?.user?.username ?? session?.user?.email?.split('@')?.[0] ?? 'Student'
 
-  const loadProjects = async () => {
-    if (!userId) return
+  const uid = useMemo(() => {
+    const n = Number(session?.user?.id)
+    return Number.isFinite(n) ? n : null
+  }, [session?.user?.id])
+
+  const loadProjects = useCallback(async () => {
+    if (uid == null || !token) return
+
     setLoadingProjects(true)
     setError(null)
 
     try {
-      const mine = await fetchMyProjectsFromAllProjects(userId, token)
+      const mine = await fetchMyProjectsFromAllProjects(uid, token)
       setProjects(Array.isArray(mine) ? mine : [])
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load projects')
     } finally {
       setLoadingProjects(false)
     }
-  }
+  }, [uid, token])
 
   useEffect(() => {
-    if (!session || session.user.role !== 'student') return
-
-    let alive = true
-    ;(async () => {
-      try {
-        setLoadingProjects(true)
-        setError(null)
-        const mine = await fetchMyProjectsFromAllProjects(userId!, token)
-        if (!alive) return
-        setProjects(Array.isArray(mine) ? mine : [])
-      } catch (e: any) {
-        if (!alive) return
-        setError(e?.message ?? 'Failed to load projects')
-      } finally {
-        if (!alive) return
-        setLoadingProjects(false)
-      }
-    })()
-
-    return () => {
-      alive = false
-    }
-  }, [session, token, userId])
+    if (status !== 'authenticated') return
+    loadProjects()
+  }, [status, loadProjects])
 
   const handleSignOut = async () => {
     try {
       setSigningOut(true)
-      await signOut({ redirect: false })
-      router.replace('/auth/signin')
-      router.refresh()
+      await signOut({ redirect: true, callbackUrl: '/' })
     } finally {
       setSigningOut(false)
     }
@@ -156,6 +223,32 @@ export default function StudentDashboard() {
     const set = new Set<string>()
     projects.forEach((p) => normalizeTech(p.technologies).forEach((t) => set.add(t)))
     return ['All', ...Array.from(set)]
+  }, [projects])
+
+  const hasActiveFilters = useMemo(() => {
+    return Boolean(query.trim() || category !== 'All' || tech !== 'All')
+  }, [query, category, tech])
+
+  const clearFilters = () => {
+    setQuery('')
+    setCategory('All')
+    setTech('All')
+  }
+
+  const stats = useMemo(() => {
+    const total = projects.length
+    let pending = 0
+    let approved = 0
+    let rejected = 0
+
+    for (const p of projects) {
+      const v = normalizeStatus(p.status)
+      if (v.includes('pend')) pending++
+      else if (v.includes('approv') || v.includes('accept')) approved++
+      else if (v.includes('reject') || v.includes('declin')) rejected++
+    }
+
+    return { total, pending, approved, rejected }
   }, [projects])
 
   const filtered = useMemo(() => {
@@ -182,7 +275,6 @@ export default function StudentDashboard() {
   }, [projects, query, category, tech])
 
   const cards: UiProjectCard[] = useMemo(() => {
-    const username = session?.user?.username ?? 'Student'
     return filtered.map((p) => ({
       id: p.id,
       title: p.title,
@@ -193,32 +285,39 @@ export default function StudentDashboard() {
       views: 0,
       rating: 0,
       image: undefined,
+      status: statusLabel(p.status),
     }))
-  }, [filtered, session?.user?.username])
+  }, [filtered, username])
 
+  // ✅ Avoid infinite loader when session is null
   if (status === 'loading') return <LoadingShell />
-  if (!session || session.user.role !== 'student') return null
+  if (!session) return null
 
   return (
     <div className="min-h-screen">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-10">
-        {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Student Dashboard</h1>
-            <p className="text-foreground/70">
-              Welcome, <span className="font-medium text-primary">{session.user.username}</span>.
+      <main className="container mx-auto max-w-6xl px-4 py-10">
+        {/* Hero header */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-foreground/70">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="text-sm">Student Dashboard</span>
+            </div>
+
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {username} 👋</h1>
+            <p className="max-w-2xl text-foreground/70">
+              Track your submissions, check review status, and keep your portfolio up to date.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link href="/dashboard/profile">
+            <Link href="/student-dashboard/profile">
               <Button variant="outline">Edit Profile</Button>
             </Link>
 
-            <Link href="/dashboard/projects/new">
+            <Link href="/submit-project">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Submit Project
@@ -230,6 +329,29 @@ export default function StudentDashboard() {
               {signingOut ? 'Signing out…' : 'Sign out'}
             </Button>
           </div>
+        </div>
+
+        {/* KPI cards */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="p-4">
+            <p className="text-sm text-foreground/60">Total projects</p>
+            <p className="mt-2 text-3xl font-bold">{stats.total}</p>
+          </Card>
+
+          <Card className="p-4">
+            <p className="text-sm text-foreground/60">Pending</p>
+            <p className="mt-2 text-3xl font-bold">{stats.pending}</p>
+          </Card>
+
+          <Card className="p-4">
+            <p className="text-sm text-foreground/60">Approved</p>
+            <p className="mt-2 text-3xl font-bold">{stats.approved}</p>
+          </Card>
+
+          <Card className="p-4">
+            <p className="text-sm text-foreground/60">Rejected</p>
+            <p className="mt-2 text-3xl font-bold">{stats.rejected}</p>
+          </Card>
         </div>
 
         {/* Filters */}
@@ -270,21 +392,39 @@ export default function StudentDashboard() {
             </select>
           </div>
 
+          {/* Active filter chips + actions */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {query.trim() ? <Badge variant="secondary">Query: {query.trim()}</Badge> : null}
+              {category !== 'All' ? <Badge variant="secondary">Category: {category}</Badge> : null}
+              {tech !== 'All' ? <Badge variant="secondary">Tech: {tech}</Badge> : null}
+              {!hasActiveFilters ? <span className="text-sm text-foreground/60">No active filters</span> : null}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={clearFilters} disabled={!hasActiveFilters || loadingProjects}>
+                Clear
+              </Button>
+
+              <Button variant="ghost" size="sm" onClick={loadProjects} className="gap-2" disabled={loadingProjects}>
+                <RefreshCcw className="h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
+          </div>
+
           <div className="mt-3 flex items-center justify-between text-sm text-foreground/60">
             <span>
               Showing <span className="font-medium">{cards.length}</span> projects
             </span>
 
-            <Button variant="ghost" size="sm" onClick={loadProjects} className="gap-2" disabled={loadingProjects}>
-              <RefreshCcw className="h-4 w-4" />
-              Refresh
-            </Button>
+            <Badge variant="secondary">{loadingProjects ? 'Syncing…' : 'Up to date'}</Badge>
           </div>
         </Card>
 
         {/* Error */}
         {error && (
-          <Card className="mt-6 p-5 border border-destructive/30">
+          <Card className="mt-6 border border-destructive/30 p-5">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="font-semibold text-destructive">Couldn’t load projects</p>
@@ -296,46 +436,53 @@ export default function StudentDashboard() {
         )}
 
         {/* Projects */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">My Projects</h2>
-            <Badge variant="secondary">{loadingProjects ? 'Loading…' : 'Ready'}</Badge>
+        <div className="mt-10">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">My Projects</h2>
+              <p className="text-sm text-foreground/60">Your submitted projects and their latest review status.</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{loadingProjects ? 'Loading…' : `${cards.length} results`}</Badge>
+            </div>
           </div>
 
           {loadingProjects ? (
             <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-80 rounded bg-muted animate-pulse" />
+                <Card key={i} className="h-80 p-4">
+                  <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+                  <div className="mt-3 h-6 w-2/3 rounded bg-muted animate-pulse" />
+                  <div className="mt-2 h-4 w-full rounded bg-muted animate-pulse" />
+                  <div className="mt-2 h-4 w-5/6 rounded bg-muted animate-pulse" />
+                  <div className="mt-6 h-8 w-32 rounded bg-muted animate-pulse" />
+                </Card>
               ))}
             </div>
           ) : cards.length === 0 ? (
-            <Card className="mt-6 p-10 text-center">
-              <p className="text-lg font-semibold">No projects found</p>
-              <p className="mt-2 text-sm text-foreground/70">
-                Submit your first project to showcase your work.
-              </p>
-              <Link href="/dashboard/projects/new">
-                <Button className="mt-5">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Submit Project
-                </Button>
-              </Link>
-            </Card>
+            <EmptyState />
           ) : (
             <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
               {cards.map((p) => (
-                <ProjectCard
-                  key={p.id}
-                  id={p.id}
-                  title={p.title}
-                  description={p.description}
-                  image={p.image}
-                  technologies={p.technologies}
-                  category={p.category}
-                  author={p.author}
-                  views={p.views}
-                  rating={p.rating}
-                />
+                <div key={p.id} className="relative">
+                  {/* Status chip (non-invasive; doesn’t require ProjectCard changes) */}
+                  <div className="absolute right-3 top-3 z-10">
+                    <Badge variant={statusBadgeVariant(p.status ?? 'Unknown')}>{p.status}</Badge>
+                  </div>
+
+                  <ProjectCard
+                    id={p.id}
+                    title={p.title}
+                    description={p.description}
+                    image={p.image}
+                    technologies={p.technologies}
+                    category={p.category}
+                    author={p.author}
+                    views={p.views}
+                    rating={p.rating}
+                  />
+                </div>
               ))}
             </div>
           )}

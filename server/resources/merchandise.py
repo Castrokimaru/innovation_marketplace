@@ -12,11 +12,13 @@ class MerchandiseList(Resource):
             {
                 "id": m.id,
                 "name": m.name,
+                "description": m.description,   
                 "price": float(m.price),
                 "stock": m.stock,
                 "image_url": m.image_url
             } for m in items
         ], 200
+
 
     @jwt_required()
     def post(self):
@@ -54,3 +56,10 @@ class MerchandiseItem(Resource):
 
         db.session.commit()
         return {"message": "Merchandise updated"}, 200
+    
+    @jwt_required()
+    def delete(self, id):
+        item = Merchandise.query.get_or_404(id)
+        db.session.delete(item)
+        db.session.commit()
+        return {"message": "Merchandise deleted"}, 200

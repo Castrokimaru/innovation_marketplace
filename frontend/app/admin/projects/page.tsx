@@ -1,84 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
+
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Search,
-  Filter,
-  Eye,
-  Edit,
-  Trash2,
-  CheckCircle,
-  Clock,
-  XCircle,
-  MoreVertical,
-} from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { cn } from '@/lib/utils'
 
-const projects = [
-  {
-    id: 1,
-    title: 'AI Chat Application',
-    author: 'Sarah Johnson',
-    category: 'AI/ML',
-    status: 'approved',
-    views: 1250,
-    likes: 180,
-    submitted: '2025-01-28',
-  },
-  {
-    id: 2,
-    title: 'E-commerce Platform',
-    author: 'Mike Chen',
-    category: 'Web',
-    status: 'pending',
-    views: 450,
-    likes: 65,
-    submitted: '2025-01-27',
-  },
-  {
-    id: 3,
-    title: 'Mobile Weather App',
-    author: 'Alex Kipchoge',
-    category: 'Mobile',
-    status: 'approved',
-    views: 890,
-    likes: 125,
-    submitted: '2025-01-26',
-  },
-  {
-    id: 4,
-    title: 'Task Management System',
-    author: 'Emma Williams',
-    category: 'Productivity',
-    status: 'rejected',
-    views: 120,
-    likes: 15,
-    submitted: '2025-01-25',
-  },
-  {
-    id: 5,
-    title: 'Fitness Tracker App',
-    author: 'David Okonkwo',
-    category: 'Health & Wellness',
-    status: 'pending',
-    views: 320,
-    likes: 45,
-    submitted: '2025-01-24',
-  },
-  {
-    id: 6,
-    title: 'Social Network Platform',
-    author: 'Lisa Anderson',
-    category: 'Social',
-    status: 'approved',
-    views: 2100,
-    likes: 310,
-    submitted: '2025-01-23',
-  },
-]
+import { Search, Filter, Eye, CheckCircle, Clock, XCircle, Package, BadgeCheck, Hourglass } from 'lucide-react'
+
+import { fetchProjects, approveProject, rejectProject, type ProjectRow } from '@/lib/api/admin-projects'
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -106,32 +38,182 @@ const getStatusColor = (status: string) => {
   }
 }
 
-export default function ProjectsManagement() {
-      const { data: session, status }:any = useSession()
-  
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
+function LoadingTableShell() {
+  return (
+    <Card className="overflow-hidden">
+      <div className="border-b bg-muted/30 px-6 py-4">
+        <div className="h-5 w-40 rounded bg-muted animate-pulse" />
+      </div>
+      <div className="p-6 space-y-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-10 w-full rounded bg-muted animate-pulse" />
+        ))}
+      </div>
+    </Card>
+  )
+}
 
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch =
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.author.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterStatus === 'all' || project.status === filterStatus
-    return matchesSearch && matchesFilter
-  })
+export default function ProjectsManagement() {
+  const { data: session } = useSession()
+
+  const token = (session as any)?.accessToken as string | undefined
+  const isAdmin = (session as any)?.user?.role === 'admin'
+
+  const [projects, setProjects] = useState<ProjectRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending' | 'rejected'>('all')
+
+  const hasActiveFilters = Boolean(searchTerm.trim() || filterStatus !== 'all')
+  const clearFilters = () => {
+    setSearchTerm('')
+    setFilterStatus('all')
+  }
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const rows = await fetchProjects()
+      setProjects(Array.isArray(rows) ? rows : [])
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to load projects')
+      setProjects([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const filteredProjects = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase()
+    return projects.filter((p) => {
+      const matchesSearch =
+        !q || p.title.toLowerCase().includes(q) || p.author.toLowerCase().includes(q)
+      const matchesFilter = filterStatus === 'all' || p.status === filterStatus
+      return matchesSearch && matchesFilter
+    })
+  }, [projects, searchTerm, filterStatus])
+
+  const stats = useMemo(() => {
+    const total = projects.length
+    const approved = projects.filter((p) => p.status === 'approved').length
+    const pending = projects.filter((p) => p.status === 'pending').length
+    const rejected = projects.filter((p) => p.status === 'rejected').length
+    return { total, approved, pending, rejected, shown: filteredProjects.length }
+  }, [projects, filteredProjects.length])
+
+  async function onApprove(id: number) {
+    if (!token) {
+      setError('Missing token (not authenticated)')
+      return
+    }
+    try {
+      // optimistic update
+      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'approved' } : p)))
+      await approveProject(id, token)
+    } catch (e: any) {
+      setError(e?.message ?? 'Approve failed')
+      await load()
+    }
+  }
+
+  async function onReject(id: number) {
+    if (!token) {
+      setError('Missing token (not authenticated)')
+      return
+    }
+    try {
+      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'rejected' } : p)))
+      await rejectProject(id, token)
+    } catch (e: any) {
+      setError(e?.message ?? 'Reject failed')
+      await load()
+    }
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
-        <p className="mt-2 text-muted-foreground">Approve, review, or manage student projects</p>
-            {/* {status === "authenticated" && (<p>Signed in as {session?.user.email}</p>)} */}
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
+          <p className="mt-2 text-muted-foreground">Approve, review, or manage student projects</p>
+        </div>
 
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={load} disabled={loading}>
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={clearFilters} disabled={!hasActiveFilters || loading}>
+            Clear filters
+          </Button>
+        </div>
       </div>
 
-      {/* Search and Filter */}
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.total}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{stats.shown} shown</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <Package className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Approved</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.approved}</p>
+              <p className="mt-2 text-xs text-muted-foreground">status = approved</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <BadgeCheck className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.pending}</p>
+              <p className="mt-2 text-xs text-muted-foreground">status = pending</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <Hourglass className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 sm:col-span-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{stats.rejected}</p>
+              <p className="mt-2 text-xs text-muted-foreground">status = rejected</p>
+            </div>
+            <div className="rounded-lg bg-primary/10 p-3">
+              <XCircle className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filters */}
       <Card className="p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -141,96 +223,138 @@ export default function ProjectsManagement() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={filterStatus === 'all' ? 'default' : 'outline'}
+              size="sm"
+              className="gap-2"
+              onClick={() => setFilterStatus('all')}
+            >
               <Filter className="h-4 w-4" />
               All
             </Button>
-            {['Approved', 'Pending', 'Rejected'].map((status) => (
+
+            {(['approved', 'pending', 'rejected'] as const).map((s) => (
               <Button
-                key={status}
-                variant={filterStatus === status.toLowerCase() ? 'default' : 'outline'}
+                key={s}
+                variant={filterStatus === s ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilterStatus(status.toLowerCase())}
+                onClick={() => setFilterStatus(s)}
               >
-                {status}
+                {s[0].toUpperCase() + s.slice(1)}
               </Button>
             ))}
           </div>
         </div>
-      </Card>
 
-      {/* Projects Table */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Project</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Author</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Category</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
-                <th className="px-6 py-4 text-center font-semibold text-foreground">Views</th>
-                <th className="px-6 py-4 text-center font-semibold text-foreground">Likes</th>
-                <th className="px-6 py-4 text-left font-semibold text-foreground">Submitted</th>
-                <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProjects.map((project) => (
-                <tr key={project.id} className="border-b border-border/50 hover:bg-muted/30">
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-foreground">{project.title}</p>
-                  </td>
-                  <td className="px-6 py-4 text-foreground/70">{project.author}</td>
-                  <td className="px-6 py-4 text-foreground/70">{project.category}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(project.status)}
-                      <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(project.status))}>
-                        {project.status}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center text-foreground/70">{project.views}</td>
-                  <td className="px-6 py-4 text-center text-foreground/70">{project.likes}</td>
-                  <td className="px-6 py-4 text-foreground/70">{project.submitted}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-2">
-                      <Button variant="ghost" size="sm" title="View">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" title="Edit">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" title="Delete" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* active filter chips */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-foreground/60">
+          {searchTerm.trim() ? (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs">
+              Query: <span className="font-medium text-foreground">{searchTerm.trim()}</span>
+            </span>
+          ) : null}
+
+          {filterStatus !== 'all' ? (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs">
+              Status: <span className="font-medium text-foreground">{filterStatus}</span>
+            </span>
+          ) : null}
+
+          {!hasActiveFilters ? <span>No active filters</span> : null}
         </div>
       </Card>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredProjects.length} of {projects.length} projects
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" disabled>
-            Previous
-          </Button>
-          <Button variant="outline">Next</Button>
-        </div>
-      </div>
+      {loading && <LoadingTableShell />}
+
+      {!loading && error && (
+        <Card className="p-6">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-destructive">{error}</p>
+            <Button variant="outline" onClick={load}>
+              Retry
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {!loading && !error && (
+        <>
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/50">
+                    <th className="px-6 py-4 text-left font-semibold text-foreground">Project</th>
+                    <th className="px-6 py-4 text-left font-semibold text-foreground">Author</th>
+                    <th className="px-6 py-4 text-left font-semibold text-foreground">Category</th>
+                    <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
+                    <th className="px-6 py-4 text-left font-semibold text-foreground">Submitted</th>
+                    <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredProjects.map((project) => (
+                    <tr key={project.id} className="border-b border-border/50 hover:bg-muted/30">
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-foreground">{project.title}</p>
+                      </td>
+                      <td className="px-6 py-4 text-foreground/70">{project.author}</td>
+                      <td className="px-6 py-4 text-foreground/70">{project.category}</td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(project.status)}
+                          <span className={cn('inline-block px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(project.status))}>
+                            {project.status}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4 text-foreground/70">{project.submitted}</td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center gap-2">
+                          {isAdmin && project.status === 'pending' && (
+                            <>
+                              <Button size="sm" onClick={() => onApprove(project.id)}>
+                                Approve
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => onReject(project.id)}>
+                                Reject
+                              </Button>
+                            </>
+                          )}
+
+                          <Button variant="ghost" size="sm" title="View (UI only)">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {filteredProjects.length === 0 && (
+                    <tr>
+                      <td className="px-6 py-12 text-center text-muted-foreground" colSpan={6}>
+                        No projects match your filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredProjects.length} of {projects.length} projects
+            </p>
+          </div>
+        </>
+      )}
     </div>
   )
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ')
 }
