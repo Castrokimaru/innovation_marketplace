@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv() 
+
 from flask import Flask
 from flask_migrate import Migrate
 from flask_restful import Api
@@ -6,6 +9,7 @@ from flask_jwt_extended import JWTManager
 
 from models import db
 import os
+
 
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList, ProjectDetail
