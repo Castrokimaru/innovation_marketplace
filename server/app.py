@@ -10,7 +10,7 @@ from flask_jwt_extended import JWTManager
 from models import db
 import os
 
-
+from services.mpesa import MpesaPay,MpesaCallback
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList, ProjectDetail
 from resources.merchandise import MerchandiseList, MerchandiseItem
@@ -18,6 +18,7 @@ from resources.orders import OrderCreate, OrderDelete
 from resources.admin import CategoryCreate, ApproveProject, RejectProject, AdminUserList
 from resources.recruiters import BrowseProjects
 from resources.likes import ProjectLikeToggle
+
 
 
 def create_app():
@@ -56,6 +57,10 @@ def create_app():
     api.add_resource(AdminUserList, "/admin/users")
 
     api.add_resource(BrowseProjects, "/recruiters/projects")
+
+
+    api.add_resource(MpesaPay, "/mpesa/pay")
+    api.add_resource(MpesaCallback, "/mpesa/callback")
     @app.route("/")
     def home():
         return {"status": "API running"}, 200
