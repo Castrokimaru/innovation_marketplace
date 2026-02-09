@@ -183,17 +183,17 @@ class ProjectDetail(Resource):
         db.session.commit()
         return {"message": "Project updated"}, 200
 
-    @jwt_required()
-    def delete(self, project_id):
-        user_id = get_jwt_identity()
-        project = Project.query.get_or_404(project_id)
+    # @jwt_required()
+    # def delete(self, project_id):
+    #     user_id = get_jwt_identity()
+    #     project = Project.query.get_or_404(project_id)
 
-        # Only creator or admin can delete
-        creator = next((up.user_id for up in project.users if up.action=="creator"), None)
-        current_user_role = User.query.get(user_id).role.name
-        if user_id != creator and current_user_role != "admin":
-            return {"error": "Unauthorized"}, 403
+    #     # Only creator or admin can delete
+    #     creator = next((up.user_id for up in project.users if up.action=="creator"), None)
+    #     current_user_role = User.query.get(user_id).role.name
+    #     if user_id != creator and current_user_role != "admin":
+    #         return {"error": "Unauthorized"}, 403
 
-        db.session.delete(project)
-        db.session.commit()
-        return {"message": "Project deleted"}, 200
+    #     db.session.delete(project)
+    #     db.session.commit()
+    #     return {"message": "Project deleted"}, 200
