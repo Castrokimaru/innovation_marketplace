@@ -8,7 +8,7 @@ from models import db
 
 
 from resources.auth import Signup, Login, UpdateProfile
-from resources.projects import ProjectList
+from resources.projects import ProjectList, ProjectDetail
 from resources.merchandise import MerchandiseList, MerchandiseItem
 from resources.orders import OrderCreate, OrderDelete
 from resources.admin import CategoryCreate, ApproveProject, RejectProject
@@ -34,7 +34,8 @@ def create_app():
     api.add_resource(UpdateProfile, "/profile")
 
     api.add_resource(ProjectList, "/projects")
-    
+    api.add_resource(ProjectDetail, "/projects/<int:project_id>")
+
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(MerchandiseItem, "/merchandise/<int:id>")
 
@@ -57,3 +58,6 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
+
+    print(app.url_map)
+
