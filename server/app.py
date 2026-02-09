@@ -36,13 +36,8 @@ def create_app():
     api.add_resource(UpdateProfile, "/profile")
 
     api.add_resource(ProjectList, "/projects")
-<<<<<<< HEAD
     api.add_resource(ProjectDetail, "/projects/<int:project_id>")
-
-=======
     api.add_resource(ProjectLikeToggle, "/projects/<int:project_id>/like")
-    
->>>>>>> origin/dev
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(MerchandiseItem, "/merchandise/<int:id>")
 
