@@ -23,7 +23,8 @@ class ProjectList(Resource):
                     "first_name": up.user.first_name,
                     "last_name": up.user.last_name,
                     "email": up.user.email,
-                    "role": up.user.role.name
+                    "role": up.user.role.name,
+                    "project_role": up.action
                 } for up in p.users
             ]
 
@@ -130,7 +131,8 @@ class ProjectDetail(Resource):
                 "first_name": up.user.first_name,
                 "last_name": up.user.last_name,
                 "email": up.user.email,
-                "role": up.user.role.name
+                "role": up.user.role.name,
+                "project_role": up.action
             } for up in project.users
         ]
 
