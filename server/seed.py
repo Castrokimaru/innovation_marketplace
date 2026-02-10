@@ -142,7 +142,12 @@ def seed_projects(students):
             )
 
         db.session.commit()
-
+CLOUDINARY_MERCH_IMAGES = {
+    "Moringa Hoodie": "https://res.cloudinary.com/drxd3fs4g/image/upload/v1770733304/hoodies_zeit7y.jpg",
+    "Moringa Mug": "https://res.cloudinary.com/drxd3fs4g/image/upload/v1770733303/Nap_First_Panic_Later_Mug___Cute_Sleeping_Duck_Coffee_Tea_Cup_M052_gukdsg.jpg",
+    "Moringa T-Shirt": "https://res.cloudinary.com/drxd3fs4g/image/upload/v1770733303/I_Get_My_Cardio_By_Running_Code_Shirt___Computer_Science___Computer_Programmer_Saying_Gift_T-shirt_uj2hwy.jpg",
+    "Laptop Sticker Pack": "https://res.cloudinary.com/drxd3fs4g/image/upload/v1770733302/download_mzqgeq.jpg",
+}
 
 def seed_merchandise():
     items = [
@@ -153,17 +158,21 @@ def seed_merchandise():
     ]
 
     for name, price in items:
+        image_url = CLOUDINARY_MERCH_IMAGES[name]
+
         db.session.add(
             Merchandise(
                 name=name,
                 description=fake.sentence(),
                 price=price,
                 stock=random.randint(10, 50),
-                image_url=fake.image_url(),
+                image_url=image_url,
             )
         )
 
     db.session.commit()
+
+
 
 def seed_orders():
     users = User.query.all()
