@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
@@ -19,7 +19,9 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
 
-import { createProject, type CreateProjectPayload } from '@/lib/api'
+import ContributorsSelect, { type UserOption } from '@/components/ui/contributors-select'
+
+import { createProject, fetchUsers, type CreateProjectPayload } from '@/lib/api'
 
 const CATEGORY_OPTIONS = ['HealthTech', 'EdTech', 'FinTech', 'AgriTech', 'Other'] as const
 
@@ -42,8 +44,14 @@ const schema = z.object({
     .trim()
     .min(8, 'Video is required')
     .refine((v) => /^https?:\/\/.+/i.test(v), 'Video must be a valid URL (https://...)'),
+  github_url: z
+    .string()
+    .trim()
+    .min(8, 'GitHub URL is required')
+    .refine((v) => /^https?:\/\/.+/i.test(v), 'GitHub URL must be a valid URL (https://...)'),
   technologies: z.string().trim().min(2, 'Technologies is required (e.g. React, Flask)'),
-  category: z.enum(CATEGORY_OPTIONS).optional(),
+  category: z.enum(CATEGORY_OPTIONS),
+  contributors: z.array(z.number()).optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -61,10 +69,45 @@ export default function SubmitProjectPage() {
   const token = session?.accessToken
   const DASHBOARD_PATH = '/student-dashboard'
 
+  const [userOptions, setUserOptions] = useState<UserOption[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+
   useEffect(() => {
     if (status === 'loading') return
     if (!session || session.user.role !== 'student') router.replace('/auth/signin')
   }, [session, status, router])
+
+  useEffect(() => {
+    if (!token) return
+
+    let cancelled = false
+      ; (async () => {
+        try {
+          setUsersLoading(true)
+          const users = await fetchUsers(String(token))
+          if (cancelled) return
+
+          const opts: UserOption[] = (Array.isArray(users) ? users : [])
+            .map((u: any) => ({
+              id: Number(u.id),
+              label: `${u.first_name ?? ''} ${u.last_name ?? ''} (${u.email ?? ''})`.trim(),
+            }))
+            .filter((o) => Number.isFinite(o.id) && o.label.length > 0)
+
+          setUserOptions(opts)
+        } catch (e) {
+          // If this fails you’ll have no autocomplete options, but submission should still work.
+          // If you want to see it:
+          // toast({ title: 'Could not load users', description: 'Contributors list unavailable.', variant: 'destructive' })
+        } finally {
+          if (!cancelled) setUsersLoading(false)
+        }
+      })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [token])
 
   const {
     register,
@@ -72,20 +115,25 @@ export default function SubmitProjectPage() {
     formState: { errors, isSubmitting },
     watch,
     reset,
+    setValue,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: '',
       description: '',
       video: '',
+      github_url: '',
       technologies: '',
       category: 'Other',
+      contributors: [],
     },
     mode: 'onTouched',
   })
 
   const technologiesValue = watch('technologies') || ''
   const techPreview = useMemo(() => parseTechnologies(technologiesValue), [technologiesValue])
+
+  const contributorIds = watch('contributors') || []
 
   const onSubmit = async (values: FormValues) => {
     if (!token) {
@@ -100,20 +148,23 @@ export default function SubmitProjectPage() {
 
     const submitted_name = (session?.user as any)?.username || (session?.user as any)?.email || 'Student'
 
-    // NOTE: Your backend payload currently expects `technologies` as a string; keep it aligned.
-    // Category is UI-only in your current backend integration (category_ids is empty).
-    const payload: CreateProjectPayload = {
+    // IMPORTANT:
+    // - category is sent as a string (backend will link it by name)
+    // - team_members is sent as user IDs array
+    const payload: CreateProjectPayload & { github_url: string; category: string; team_members: number[] } = {
       title: values.title.trim(),
       description: values.description.trim(),
       video: values.video.trim(),
+      github_url: values.github_url.trim(),
       technologies: values.technologies.trim(),
       submitted_name,
-      team_members: [],
-      category_ids: [],
+      team_members: values.contributors || [],
+      category: values.category,
+      category_ids: [], // optional: keep for future
     }
 
     try {
-      await createProject(payload, token)
+      await createProject(payload, String(token))
 
       toast({
         title: 'Project submitted',
@@ -157,9 +208,7 @@ export default function SubmitProjectPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Submit Project</h1>
-            <p className="text-foreground/70">
-              Add your project details for review. Make sure your demo link is accessible.
-            </p>
+            <p className="text-foreground/70">Add your project details for review. Make sure your demo link is accessible.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -185,8 +234,8 @@ export default function SubmitProjectPage() {
             <div className="space-y-1">
               <p className="text-sm font-medium">Tips for a strong submission</p>
               <p className="text-sm text-foreground/70">
-                Keep the title clear, describe the problem and solution, and list your key technologies. Use a valid{' '}
-                <span className="font-medium">https://</span> demo video URL.
+                Keep the title clear, describe the problem and solution, and list your key technologies. Use valid{' '}
+                <span className="font-medium">https://</span> URLs for demo + GitHub.
               </p>
             </div>
           </div>
@@ -212,9 +261,7 @@ export default function SubmitProjectPage() {
               />
               <div className="flex items-center justify-between gap-3">
                 <FieldError message={errors.description?.message} />
-                <span className="text-xs text-foreground/60">
-                  {(watch('description') || '').length}/500
-                </span>
+                <span className="text-xs text-foreground/60">{(watch('description') || '').length}/500</span>
               </div>
             </div>
 
@@ -223,6 +270,13 @@ export default function SubmitProjectPage() {
               <label className="text-sm font-medium">Demo Video URL</label>
               <Input placeholder="https://youtube.com/..." {...register('video')} />
               <FieldError message={errors.video?.message} />
+            </div>
+
+            {/* GitHub */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">GitHub Repo URL</label>
+              <Input placeholder="https://github.com/username/repo" {...register('github_url')} />
+              <FieldError message={errors.github_url?.message} />
             </div>
 
             {/* Category */}
@@ -235,9 +289,7 @@ export default function SubmitProjectPage() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-foreground/60">
-                This helps with organization on the UI. Backend linking can be added later.
-              </p>
+              <FieldError message={errors.category?.message} />
             </div>
 
             {/* Technologies */}
@@ -253,13 +305,32 @@ export default function SubmitProjectPage() {
                       {t}
                     </Badge>
                   ))}
-                  {techPreview.length > 8 ? (
-                    <Badge variant="secondary">+{techPreview.length - 8} more</Badge>
-                  ) : null}
+                  {techPreview.length > 8 ? <Badge variant="secondary">+{techPreview.length - 8} more</Badge> : null}
                 </div>
               ) : (
                 <p className="text-xs text-foreground/60">Example: React, Next.js, Flask</p>
               )}
+            </div>
+
+            {/* Contributors */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Contributors</label>
+
+              <ContributorsSelect
+                options={userOptions}
+                selectedIds={contributorIds}
+                onChangeSelectedIds={(ids) => setValue('contributors', ids, { shouldTouch: true, shouldValidate: true })}
+                disabled={isSubmitting}
+                placeholder={usersLoading ? 'Loading users…' : 'Search by name/email...'}
+              />
+              <p className="text-xs text-foreground/60">
+                Loaded users: {userOptions.length} {usersLoading ? '(loading...)' : ''}
+              </p>
+
+
+              <p className="text-xs text-foreground/60">
+                Choose from the dropdown to add contributors. They will be linked as contributors on the project.
+              </p>
             </div>
 
             {/* Actions */}
@@ -269,12 +340,7 @@ export default function SubmitProjectPage() {
                 {isSubmitting ? 'Submitting…' : 'Submit Project'}
               </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isSubmitting}
-                onClick={() => router.replace(DASHBOARD_PATH)}
-              >
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => router.replace(DASHBOARD_PATH)}>
                 Cancel
               </Button>
             </div>
