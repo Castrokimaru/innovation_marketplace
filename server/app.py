@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv() 
+
 from flask import Flask
 from flask_migrate import Migrate
 from flask_restful import Api
@@ -7,6 +10,7 @@ from flask_jwt_extended import JWTManager
 from models import db
 import os
 
+from resources.mpesa import MpesaPay,MpesaCallback
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList, ProjectDetail
 from resources.merchandise import MerchandiseList, MerchandiseItem
@@ -14,6 +18,7 @@ from resources.orders import OrderCreate, OrderDelete
 from resources.admin import CategoryCreate, ApproveProject, RejectProject, AdminUserList
 from resources.recruiters import BrowseProjects
 from resources.likes import ProjectLikeToggle
+
 
 
 def create_app():
@@ -37,7 +42,11 @@ def create_app():
 
     api.add_resource(ProjectList, "/projects")
     api.add_resource(ProjectDetail, "/projects/<int:project_id>")
+
+
     api.add_resource(ProjectLikeToggle, "/projects/<int:project_id>/like")
+    
+
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(MerchandiseItem, "/merchandise/<int:id>")
 
@@ -50,6 +59,10 @@ def create_app():
     api.add_resource(AdminUserList, "/admin/users")
 
     api.add_resource(BrowseProjects, "/recruiters/projects")
+
+
+    api.add_resource(MpesaPay, "/mpesa/pay")
+    api.add_resource(MpesaCallback, "/mpesa/callback")
     @app.route("/")
     def home():
         return {"status": "API running"}, 200

@@ -116,6 +116,9 @@ class Order(db.Model):
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     status = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    payment_method = db.Column(db.String(20))
+    checkout_request_id = db.Column(db.String(100))
+    mpesa_receipt = db.Column(db.String(50))
 
     
     # One user can place many orders
