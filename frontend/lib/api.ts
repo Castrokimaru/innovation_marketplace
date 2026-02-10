@@ -202,3 +202,12 @@ export async function updateProfile(payload: UpdateProfilePayload, token?: strin
     user: { id: number; first_name: string; last_name: string; email: string }
   }
 }
+
+export async function fetchUsers(token: string) {
+  const res = await fetch(`${BASE}/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error('Failed to fetch users')
+  return res.json()
+}

@@ -72,6 +72,7 @@ class ProjectList(Resource):
                 "title": p.title,
                 "description": p.description,
                 "video": p.video,
+                "github_url": p.github_url, 
                 "technologies": p.technologies,
                 "submitted_name": p.submitted_name,
                 "status": p.status,
@@ -84,6 +85,68 @@ class ProjectList(Resource):
 
         return result, 200
 
+
+    @jwt_required()
+    def post(self):
+        user_id = get_jwt_identity()
+        data = request.get_json()
+
+        title = data.get("title")
+        description = data.get("description")
+        video = data.get("video")
+        github_url = data.get("github_url") 
+        technologies = data.get("technologies")
+        submitted_name = data.get("submitted_name")
+        team_members = data.get("team_members", [])
+        category_ids = data.get("category_ids", [])
+
+        if not all([title, description, video, github_url, technologies, submitted_name]):
+            return {"error": "Missing required fields"}, 400
+
+        # Creating the project
+        project = Project(
+            title=title,
+            description=description,
+            video=video,
+            github_url=github_url,
+            technologies=technologies,
+            submitted_name=submitted_name,
+        )
+        db.session.add(project)
+        db.session.commit()
+
+        # Linking creator
+        creator_link = UserProject(
+            user_id=user_id,
+            project_id=project.id,
+            action="creator"
+        )
+        db.session.add(creator_link)
+
+        # Link team members but skip creator
+        for member_id in team_members:
+            if member_id == user_id:
+                continue
+            user = User.query.get(member_id)
+            if user:
+                db.session.add(UserProject(
+                    user_id=user.id,
+                    project_id=project.id,
+                    action="contributor"
+                ))
+
+        # Link categories
+        for cat_id in category_ids:
+            category = Category.query.get(cat_id)
+            if category:
+                db.session.add(ProjectCategory(
+                    project_id=project.id,
+                    category_id=category.id
+                ))
+
+        db.session.commit()
+
+        return {"message": "Project created", "project_id": project.id}, 201
 
 class ProjectDetail(Resource):
     @jwt_required()
@@ -118,6 +181,7 @@ class ProjectDetail(Resource):
             "title": project.title,
             "description": project.description,
             "video": project.video,
+            "github_url": project.github_url, 
             "technologies": project.technologies,
             "submitted_name": project.submitted_name,
             "status": project.status,
@@ -143,10 +207,15 @@ class ProjectDetail(Resource):
 
         if "title" in data:
             project.title = data["title"]
+            
         if "description" in data:
             project.description = data["description"]
         if "video" in data:
             project.video = data["video"]
+
+        if "github_url" in data:
+            project.github_url = data["github_url"]
+
         if "technologies" in data:
             project.technologies = data["technologies"]
 
