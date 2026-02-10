@@ -242,12 +242,38 @@ export default function CartPage() {
     }
 
     if (selectedPayment === 'mpesa') {
-      const digits = normalizePhone(paymentDetails.phone)
+      let digits = normalizePhone(paymentDetails.phone)
+
+      // Check length first
       if (!digits || digits.length < 9) {
         notify('Invalid phone number', 'Enter a valid M-Pesa phone number.', 'destructive')
         return
       }
+
+      // Prepend 254 if needed
+      if (digits.startsWith('0')) digits = '254' + digits.slice(1)
+
+      const res = await fetch("/mpesa/pay", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.accessToken}`,
+        },
+        body: JSON.stringify({
+          phone: digits,
+          order_id: orderDetails.order_id
+        }),
+      })
+
+      const data = await res.json()
+      console.log("STK push response:", data)
+      if (data.error) {
+        notify("STK push failed", data.error, "destructive")
+        return
+      }
+      notify("STK push sent", `CheckoutRequestID: ${data.checkout_request_id}`)
     }
+
 
     if (selectedPayment === 'card') {
       const num = paymentDetails.cardNumber.replace(/\s/g, '')
@@ -298,7 +324,7 @@ export default function CartPage() {
     <div className="min-h-screen">
       <Navbar />
 
-      {/* Loading UI is conditional, but hooks are already executed */}
+      {/*Loading UI is conditional, but hooks are already executed */}
       {status === 'loading' ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
