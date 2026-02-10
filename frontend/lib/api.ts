@@ -124,13 +124,15 @@ export type CreateProjectPayload = {
   title: string
   description: string
   video: string
+  github_url: string
   technologies: string
   submitted_name: string
   team_members?: number[]
   category_ids?: number[]
+  category?: string
 }
 
-export async function createProject(payload: any, token?: string) {
+export async function createProject(payload: CreateProjectPayload, token?: string) {
   const headers: HeadersInit = { 'Content-Type': 'application/json' }
 
   if (token) {
@@ -205,9 +207,12 @@ export async function updateProfile(payload: UpdateProfilePayload, token?: strin
 
 export async function fetchUsers(token: string) {
   const res = await fetch(`${BASE}/users`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      ...authHeaders(token),
+    },
     cache: 'no-store',
   })
   if (!res.ok) throw new Error('Failed to fetch users')
   return res.json()
 }
+
