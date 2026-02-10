@@ -8,6 +8,9 @@ type AppUser = {
   username: string
   role: string
   accessToken: string
+  first_name?: string
+  last_name?: string
+  name?: string
 }
 
 export const authOptions: NextAuthOptions = {
@@ -38,13 +41,18 @@ export const authOptions: NextAuthOptions = {
         const data = await res.json().catch(() => null)
         if (!data?.access_token || !data?.user_id || !data?.role) return null
 
+        const displayName =
+          [data.first_name, data.last_name].filter(Boolean).join(' ') ||
+          (email ? email.split('@')[0] : 'Admin')
+
         const user: AppUser = {
-          id: String(data.user_id),         // ✅ always string
-          email,
-          username: email,
+          id: String(data.user_id),
+          email: String(data.email ?? email),
+          username: displayName,
           role: String(data.role),
           accessToken: String(data.access_token),
         }
+
 
         return user
       },
@@ -75,9 +83,9 @@ export const authOptions: NextAuthOptions = {
         role: typeof token.role === "string" ? token.role : "",
       }
 
-      // Put accessToken at top-level of session (matches your frontend usage)
-      ;(session as unknown as { accessToken?: string }).accessToken =
-        typeof token.accessToken === "string" ? token.accessToken : undefined
+        // Put accessToken at top-level of session (matches your frontend usage)
+        ; (session as unknown as { accessToken?: string }).accessToken =
+          typeof token.accessToken === "string" ? token.accessToken : undefined
 
       return session
     },

@@ -11,8 +11,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
-import { Search, Plus, Edit, Trash2, TrendingUp, ShoppingBag, DollarSign, RefreshCcw, ImageOff } from 'lucide-react'
-import { fetchMerchandise, createMerchandise } from '@/lib/api'
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  TrendingUp,
+  ShoppingBag,
+  DollarSign,
+  RefreshCcw,
+  ImageOff,
+} from 'lucide-react'
+import { fetchMerchandise, createMerchandise, updateMerchandise, deleteMerchandise } from '@/lib/api'
 
 type MerchandiseItem = {
   id: number
@@ -23,7 +33,7 @@ type MerchandiseItem = {
   image_url?: string
 }
 
-type NewProductState = {
+type ProductFormState = {
   name: string
   description: string
   price: string
@@ -57,13 +67,25 @@ export default function MerchandiseManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
 
-  const [newProduct, setNewProduct] = useState<NewProductState>({
+  const [newProduct, setNewProduct] = useState<ProductFormState>({
     name: '',
     description: '',
     price: '',
     stock: '',
     image_url: '',
   })
+
+  // Edit state
+  const [editItem, setEditItem] = useState<MerchandiseItem | null>(null)
+  const [editState, setEditState] = useState<ProductFormState>({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    image_url: '',
+  })
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -92,7 +114,10 @@ export default function MerchandiseManagement() {
     })
   }, [merchandise, searchTerm])
 
-  const totalStock = useMemo(() => merchandise.reduce((sum, item) => sum + (Number(item.stock) || 0), 0), [merchandise])
+  const totalStock = useMemo(
+    () => merchandise.reduce((sum, item) => sum + (Number(item.stock) || 0), 0),
+    [merchandise]
+  )
   const totalProducts = merchandise.length
   const avgPrice = useMemo(() => {
     if (merchandise.length === 0) return 0
@@ -101,9 +126,7 @@ export default function MerchandiseManagement() {
   }, [merchandise])
 
   const canAdd =
-    newProduct.name.trim() &&
-    Number.isFinite(Number(newProduct.price)) &&
-    Number.isFinite(Number(newProduct.stock))
+    newProduct.name.trim() && Number.isFinite(Number(newProduct.price)) && Number.isFinite(Number(newProduct.stock))
 
   const resetForm = () => {
     setNewProduct({ name: '', description: '', price: '', stock: '', image_url: '' })
@@ -134,8 +157,79 @@ export default function MerchandiseManagement() {
       resetForm()
       setShowAddForm(false)
       await load()
-    } catch (error) {
-      alert('Failed to add product: ' + (error as Error).message)
+    } catch (err) {
+      alert('Failed to add product: ' + (err as Error).message)
+    }
+  }
+
+  // Edit helpers
+  const openEdit = (item: MerchandiseItem) => {
+    setEditItem(item)
+    setEditState({
+      name: item.name ?? '',
+      description: item.description ?? '',
+      price: String(item.price ?? ''),
+      stock: String(item.stock ?? ''),
+      image_url: item.image_url ?? '',
+    })
+  }
+
+  const canSaveEdit =
+    editState.name.trim() &&
+    Number.isFinite(Number(editState.price)) &&
+    Number.isFinite(Number(editState.stock))
+
+  const handleSaveEdit = async () => {
+    if (!token) {
+      alert('Please sign in as admin to edit products.')
+      return
+    }
+    if (!editItem) return
+    if (!canSaveEdit) {
+      alert('Please enter a name, price, and stock.')
+      return
+    }
+
+    try {
+      setSavingEdit(true)
+      await updateMerchandise(
+        editItem.id,
+        {
+          name: editState.name.trim(),
+          description: editState.description.trim(),
+          price: Number(editState.price),
+          stock: Number(editState.stock),
+          image_url: editState.image_url.trim(),
+        },
+        token
+      )
+
+      setEditItem(null)
+      await load()
+    } catch (err) {
+      alert('Failed to update product: ' + (err as Error).message)
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  const handleDelete = async (item: MerchandiseItem) => {
+    if (!token) {
+      alert('Please sign in as admin to delete products.')
+      return
+    }
+
+    const ok = window.confirm(`Delete "${item.name}"? This cannot be undone.`)
+    if (!ok) return
+
+    try {
+      setDeletingId(item.id)
+      await deleteMerchandise(item.id, token)
+      await load()
+    } catch (err) {
+      alert('Failed to delete product: ' + (err as Error).message)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -304,17 +398,23 @@ export default function MerchandiseManagement() {
 
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
-                        <Button variant="ghost" size="sm" title="Edit (not implemented)">
+                        <Button variant="ghost" size="sm" title="Edit" onClick={() => openEdit(item)}>
                           <Edit className="h-4 w-4" />
                         </Button>
+
                         <Button
                           variant="ghost"
                           size="sm"
-                          title="Delete (not implemented)"
+                          title="Delete"
                           className="text-destructive hover:text-destructive"
-                          onClick={() => alert('Backend endpoint not implemented yet')}
+                          onClick={() => handleDelete(item)}
+                          disabled={deletingId === item.id}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deletingId === item.id ? (
+                            <RefreshCcw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </td>
@@ -409,6 +509,75 @@ export default function MerchandiseManagement() {
               </Button>
               <Button onClick={handleAddProduct} disabled={!canAdd}>
                 Add Product
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Product Dialog */}
+      <Dialog open={Boolean(editItem)} onOpenChange={(open) => !open && setEditItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit_name">Product Name</Label>
+              <Input
+                id="edit_name"
+                value={editState.name}
+                onChange={(e) => setEditState({ ...editState, name: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_description">Description</Label>
+              <Textarea
+                id="edit_description"
+                value={editState.description}
+                onChange={(e) => setEditState({ ...editState, description: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit_price">Price (KES)</Label>
+                <Input
+                  id="edit_price"
+                  type="number"
+                  value={editState.price}
+                  onChange={(e) => setEditState({ ...editState, price: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit_stock">Stock</Label>
+                <Input
+                  id="edit_stock"
+                  type="number"
+                  value={editState.stock}
+                  onChange={(e) => setEditState({ ...editState, stock: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_image_url">Image URL</Label>
+              <Input
+                id="edit_image_url"
+                value={editState.image_url}
+                onChange={(e) => setEditState({ ...editState, image_url: e.target.value })}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setEditItem(null)} disabled={savingEdit}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveEdit} disabled={!canSaveEdit || savingEdit}>
+                {savingEdit ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </div>

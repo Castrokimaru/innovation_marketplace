@@ -43,8 +43,10 @@ def create_app():
     api.add_resource(ProjectList, "/projects")
     api.add_resource(ProjectDetail, "/projects/<int:project_id>")
 
+
     api.add_resource(ProjectLikeToggle, "/projects/<int:project_id>/like")
     
+
     api.add_resource(MerchandiseList, "/merchandise")
     api.add_resource(MerchandiseItem, "/merchandise/<int:id>")
 
