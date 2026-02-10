@@ -36,6 +36,7 @@ const fallbackImages = [
   'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735910/Friendly_Futuristic_Robot_wbvmbh.jpg',
   'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735909/download_2_eeb4ac.jpg',
   'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735908/AI_Images_4k_-_Freepik_231224786924_jc3b5l.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735916/Ai-%D1%85%D1%83%D0%B4%D0%BE%D0%B6%D0%BD%D0%B8%D0%BA_h7wj5r.jpg'
 ]
 
 export function ProjectCard({
@@ -61,6 +62,11 @@ export function ProjectCard({
   const [isLiked, setIsLiked] = useState<boolean>(liked)
   const [likeCount, setLikeCount] = useState<number>(likesCount)
   const [likeLoading, setLikeLoading] = useState(false)
+
+  const randomFallback = useMemo(() => {
+  const index = Math.floor(Math.random() * fallbackImages.length)
+  return fallbackImages[index]
+  }, [])
 
   const techs = useMemo(() => {
     if (Array.isArray(technologies)) return technologies.filter(Boolean)
@@ -171,18 +177,13 @@ export function ProjectCard({
 
       {/* Image */}
       <div className="relative z-10 h-44 w-full overflow-hidden bg-muted">
-        {image ? (
-          <img
-            src={image}
-            alt={title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className={`flex h-full items-center justify-center ${isDark ? 'bg-white/5' : ''}`}>
-            <span className="text-5xl">💻</span>
-          </div>
-        )}
+        <img
+        src={image || randomFallback}
+        alt={title}
+        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        loading="lazy"
+      />
+
 
         {/* overlay gradient */}
         <div
