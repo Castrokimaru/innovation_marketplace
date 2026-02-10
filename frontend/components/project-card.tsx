@@ -29,6 +29,15 @@ interface ProjectCardProps {
   variant?: ProjectCardVariant
 }
 
+const fallbackImages = [
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735910/%D8%AF%D9%8A%D8%AC%D9%8A%D8%AA%D8%A7%D9%84_%D9%83%D8%A7%D8%B1%D8%AF_rmval4.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735912/Self_Productivity_jogxol.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735916/Ai-%D1%85%D1%83%D0%B4%D0%BE%D0%B6%D0%BD%D0%B8%D0%BA_h7wj5r.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735910/Friendly_Futuristic_Robot_wbvmbh.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735909/download_2_eeb4ac.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735908/AI_Images_4k_-_Freepik_231224786924_jc3b5l.jpg',
+]
+
 export function ProjectCard({
   id,
   title,
