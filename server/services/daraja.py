@@ -28,13 +28,12 @@ def stk_push(phone, amount, callback_url, account_ref):
     token = get_access_token()
 
   
-    timestamp = (
-        datetime.now(timezone.utc) + timedelta(hours=3)
-    ).strftime("%Y%m%d%H%M%S")
+    timestamp = (datetime.now(timezone.utc) + timedelta(hours=3)).strftime("%Y%m%d%H%M%S")
 
-    password = base64.b64encode(
-        f"{SHORTCODE}{PASSKEY}{timestamp}".encode()
-    ).decode()
+    password = base64.b64encode(f"{SHORTCODE}{PASSKEY}{timestamp}".encode()).decode()
+
+    if phone.startswith("0"):
+        phone = "254" + phone[1:]
 
     payload = {
         "BusinessShortCode": SHORTCODE,

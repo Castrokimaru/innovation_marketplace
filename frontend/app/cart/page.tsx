@@ -111,7 +111,7 @@ function EmptyState() {
 }
 
 export default function CartPage() {
-  // ✅ All hooks declared up top, no early return before later hooks
+  // All hooks declared up top, no early return before later hooks
   const { toast } = useToast()
 
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
@@ -169,7 +169,7 @@ export default function CartPage() {
     }
   }, [])
 
-  // ✅ useMemo always runs (even during loading), so hook count is stable
+  // useMemo always runs (even during loading), so hook count is stable
   const items: CartLine[] = useMemo(() => {
     const productById = new Map(products.map((p) => [p.id, p]))
     return cart
@@ -241,13 +241,41 @@ export default function CartPage() {
       return
     }
 
+    setCheckoutLoading(true)
+
     if (selectedPayment === 'mpesa') {
-      const digits = normalizePhone(paymentDetails.phone)
+      let digits = normalizePhone(paymentDetails.phone)
+
+      
       if (!digits || digits.length < 9) {
         notify('Invalid phone number', 'Enter a valid M-Pesa phone number.', 'destructive')
         return
       }
+
+      
+      if (digits.startsWith('0')) digits = '254' + digits.slice(1)
+
+      const res = await fetch("/mpesa/pay", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.accessToken}`,
+        },
+        body: JSON.stringify({
+          phone: digits,
+          order_id: orderDetails.order_id
+        }),
+      })
+
+      const data = await res.json()
+      console.log("STK push response:", data)
+      if (data.error) {
+        notify("STK push failed", data.error, "destructive")
+        return
+      }
+      notify("STK push sent", `CheckoutRequestID: ${data.checkout_request_id}`)
     }
+
 
     if (selectedPayment === 'card') {
       const num = paymentDetails.cardNumber.replace(/\s/g, '')
@@ -298,7 +326,7 @@ export default function CartPage() {
     <div className="min-h-screen">
       <Navbar />
 
-      {/* ✅ Loading UI is conditional, but hooks are already executed */}
+      {/*Loading UI is conditional, but hooks are already executed */}
       {status === 'loading' ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
