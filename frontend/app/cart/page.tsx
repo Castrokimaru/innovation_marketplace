@@ -111,7 +111,7 @@ function EmptyState() {
 }
 
 export default function CartPage() {
-  // ✅ All hooks declared up top, no early return before later hooks
+  // All hooks declared up top, no early return before later hooks
   const { toast } = useToast()
 
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
@@ -169,7 +169,7 @@ export default function CartPage() {
     }
   }, [])
 
-  // ✅ useMemo always runs (even during loading), so hook count is stable
+  // useMemo always runs (even during loading), so hook count is stable
   const items: CartLine[] = useMemo(() => {
     const productById = new Map(products.map((p) => [p.id, p]))
     return cart
@@ -298,7 +298,7 @@ export default function CartPage() {
     <div className="min-h-screen">
       <Navbar />
 
-      {/* ✅ Loading UI is conditional, but hooks are already executed */}
+      {/* Loading UI is conditional, but hooks are already executed */}
       {status === 'loading' ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
