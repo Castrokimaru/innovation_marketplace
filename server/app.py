@@ -10,7 +10,7 @@ from flask_jwt_extended import JWTManager
 from models import db
 import os
 
-from services.mpesa import MpesaPay,MpesaCallback
+from server.resources.mpesa import MpesaPay,MpesaCallback
 from resources.auth import Signup, Login, UpdateProfile
 from resources.projects import ProjectList, ProjectDetail
 from resources.merchandise import MerchandiseList, MerchandiseItem
