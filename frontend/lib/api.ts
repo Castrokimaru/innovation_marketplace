@@ -13,13 +13,16 @@ export async function fetchMerchandise() {
   return res.json()
 }
 
-export async function createMerchandise(payload: {
-  name: string
-  description: string
-  price: number
-  stock: number
-  image_url: string
-}, token?: string) {
+export async function createMerchandise(
+  payload: {
+    name: string
+    description: string
+    price: number
+    stock: number
+    image_url: string
+  },
+  token?: string
+) {
   const res = await fetch(`${BASE}/merchandise`, {
     method: 'POST',
     headers: {
@@ -28,11 +31,54 @@ export async function createMerchandise(payload: {
     },
     body: JSON.stringify(payload),
   })
+
+  const data = await res.json().catch(() => ({}))
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || 'Failed to create merchandise')
+    throw new Error(data.error || data.message || 'Failed to create merchandise')
   }
-  return res.json()
+  return data
+}
+
+export async function updateMerchandise(
+  id: number,
+  payload: Partial<{
+    name: string
+    description: string
+    price: number
+    stock: number
+    image_url: string
+  }>,
+  token?: string
+) {
+  const res = await fetch(`${BASE}/merchandise/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(data.error || data.message || 'Failed to update merchandise')
+  }
+  return data
+}
+
+export async function deleteMerchandise(id: number, token?: string) {
+  const res = await fetch(`${BASE}/merchandise/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...authHeaders(token),
+    },
+  })
+
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(data.error || data.message || 'Failed to delete merchandise')
+  }
+  return data
 }
 
 export async function fetchProjects(token?: string) {
@@ -57,10 +103,7 @@ export async function fetchMyProjectsFromAllProjects(userId: number, token?: str
   })
 }
 
-export async function createOrder(
-  items: Array<{ merchandise_id: number; quantity: number }>,
-  token?: string
-) {
+export async function createOrder(items: Array<{ merchandise_id: number; quantity: number }>, token?: string) {
   const res = await fetch(`${BASE}/orders`, {
     method: 'POST',
     headers: {
@@ -69,11 +112,12 @@ export async function createOrder(
     },
     body: JSON.stringify({ items }),
   })
+
+  const data = await res.json().catch(() => ({}))
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || 'Failed to create order')
+    throw new Error(data.error || data.message || 'Failed to create order')
   }
-  return res.json()
+  return data
 }
 
 export type CreateProjectPayload = {
@@ -104,7 +148,6 @@ export async function createProject(payload: any, token?: string) {
   if (!res.ok) throw new Error(data.error || data.message || 'Failed to create project')
   return data
 }
-
 
 export async function signup(payload: {
   first_name: string
@@ -154,7 +197,6 @@ export async function updateProfile(payload: UpdateProfilePayload, token?: strin
     throw new Error(data.error || data.message || 'Failed to update profile')
   }
 
-  // backend returns: { message, user: { id, first_name, last_name, email } }
   return data as {
     message: string
     user: { id: number; first_name: string; last_name: string; email: string }
