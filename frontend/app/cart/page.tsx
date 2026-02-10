@@ -244,13 +244,13 @@ export default function CartPage() {
     if (selectedPayment === 'mpesa') {
       let digits = normalizePhone(paymentDetails.phone)
 
-      // Check length first
+      
       if (!digits || digits.length < 9) {
         notify('Invalid phone number', 'Enter a valid M-Pesa phone number.', 'destructive')
         return
       }
 
-      // Prepend 254 if needed
+      
       if (digits.startsWith('0')) digits = '254' + digits.slice(1)
 
       const res = await fetch("/mpesa/pay", {
