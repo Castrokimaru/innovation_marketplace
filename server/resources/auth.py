@@ -63,7 +63,10 @@ class Login(Resource):
         return {
             "access_token": token,
             "user_id": user.id,
-            "role": user.role.name if user.role else None
+            "role": user.role.name if user.role else None,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
         }, 200
 
 
