@@ -241,6 +241,8 @@ export default function CartPage() {
       return
     }
 
+    setCheckoutLoading(true)
+
     if (selectedPayment === 'mpesa') {
       let digits = normalizePhone(paymentDetails.phone)
 
