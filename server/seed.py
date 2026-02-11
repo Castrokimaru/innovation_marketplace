@@ -48,7 +48,7 @@ def seed_users():
     db.session.add(admin)
 
     students = []
-    for _ in range(15):
+    for _ in range(10):
         student = User(
             first_name=fake.first_name(),
             last_name=fake.last_name(),
@@ -147,6 +147,10 @@ CLOUDINARY_MERCH_IMAGES = {
     "Moringa Mug": "https://res.cloudinary.com/drxd3fs4g/image/upload/v1770733303/Nap_First_Panic_Later_Mug___Cute_Sleeping_Duck_Coffee_Tea_Cup_M052_gukdsg.jpg",
     "Moringa T-Shirt": "https://res.cloudinary.com/drxd3fs4g/image/upload/v1770733303/I_Get_My_Cardio_By_Running_Code_Shirt___Computer_Science___Computer_Programmer_Saying_Gift_T-shirt_uj2hwy.jpg",
     "Laptop Sticker Pack": "https://res.cloudinary.com/drxd3fs4g/image/upload/v1770733302/download_mzqgeq.jpg",
+    "Mechanical Keyboard Keycap Set":"https://res.cloudinary.com/drxd3fs4g/image/upload/v1770816161/PBT_Shine_Through_Double_Shot_Keycaps_142_Keys_Cherry_Profile_Backlit_Keycaps_for_Cherry_Gateron_MX_wvluip.jpg",
+    "USB Flash Drive":"https://res.cloudinary.com/drxd3fs4g/image/upload/v1770816161/Fingerprint_USB3_0_Flash_Drive_Encrypted_64G_Memory_Stick_Pen_Zip_Drive_Biometric_Security_Protection_Thumb_Drive_for_PC_Smartphone_Laptop__fpi5dh.jpg",
+    "Moringa Laptop Sleeve":"https://res.cloudinary.com/drxd3fs4g/image/upload/v1770816161/1pc_Butterfly_Letter_Graphic_Laptop_Bag_fclbgl.jpg",
+    "Mouse Pad":"https://res.cloudinary.com/drxd3fs4g/image/upload/v1770816161/Eat_Sleep_Code_Repeat___Mouse_Pad_-_Etsy_suyscv.jpg"
 }
 
 def seed_merchandise():
@@ -155,6 +159,10 @@ def seed_merchandise():
         ("Moringa Mug", 1200),
         ("Moringa T-Shirt", 2500),
         ("Laptop Sticker Pack", 800),
+        ("Mechanical Keyboard Keycap Set", 1500),
+        ("USB Flash Drive", 1000),
+        ("Moringa Laptop Sleeve", 2000),
+        ("Mouse Pad", 700),
     ]
 
     for name, price in items:
