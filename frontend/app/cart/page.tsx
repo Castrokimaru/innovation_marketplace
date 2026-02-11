@@ -25,6 +25,8 @@ import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 
+const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
+
 type Merchandise = {
   id: number
   name: string
@@ -42,6 +44,18 @@ type CartLine = {
 
 type CheckoutStep = 'cart' | 'payment' | 'payment-details' | 'confirmation'
 type PaymentMethod = 'mpesa' | 'card' | 'cash' | ''
+
+type OrderStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | string
+
+type OrderDetails = {
+  order_id: number
+  total?: number
+  status?: OrderStatus
+  payment_method?: string | null
+  checkout_request_id?: string | null
+  merchant_request_id?: string | null
+  mpesa_receipt?: string | null
+}
 
 function moneyKES(v: number) {
   return `${(v || 0).toLocaleString()} KES`
@@ -110,8 +124,18 @@ function EmptyState() {
   )
 }
 
+async function fetchOrderStatus(orderId: number, token: string): Promise<OrderDetails> {
+  const res = await fetch(`${BASE}/orders/${orderId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data?.error || data?.message || 'Failed to fetch order status')
+  return data
+}
+
 export default function CartPage() {
-  // All hooks declared up top, no early return before later hooks
   const { toast } = useToast()
 
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
@@ -134,9 +158,12 @@ export default function CartPage() {
   })
 
   const [checkoutLoading, setCheckoutLoading] = useState(false)
-  const [orderDetails, setOrderDetails] = useState<any>(null)
+  const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null)
 
-  // Redirect unauthenticated users
+  function notify(title: string, description?: string, variant: 'default' | 'destructive' = 'default') {
+    toast({ title, description, variant })
+  }
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       const callbackUrl = searchParams.get('callbackUrl') || '/cart'
@@ -144,32 +171,30 @@ export default function CartPage() {
     }
   }, [status, router, searchParams])
 
-  // Fetch merchandise
   useEffect(() => {
     let alive = true
-    ;(async () => {
-      try {
-        setLoadingProducts(true)
-        setProductsError(null)
-        const data = await fetchMerchandise()
-        if (!alive) return
-        setProducts(Array.isArray(data) ? (data as Merchandise[]) : [])
-      } catch (e: any) {
-        if (!alive) return
-        setProducts([])
-        setProductsError(e?.message ?? 'Failed to load products')
-      } finally {
-        if (!alive) return
-        setLoadingProducts(false)
-      }
-    })()
+      ; (async () => {
+        try {
+          setLoadingProducts(true)
+          setProductsError(null)
+          const data = await fetchMerchandise()
+          if (!alive) return
+          setProducts(Array.isArray(data) ? (data as Merchandise[]) : [])
+        } catch (e: any) {
+          if (!alive) return
+          setProducts([])
+          setProductsError(e?.message ?? 'Failed to load products')
+        } finally {
+          if (!alive) return
+          setLoadingProducts(false)
+        }
+      })()
 
     return () => {
       alive = false
     }
   }, [])
 
-  // useMemo always runs (even during loading), so hook count is stable
   const items: CartLine[] = useMemo(() => {
     const productById = new Map(products.map((p) => [p.id, p]))
     return cart
@@ -189,10 +214,6 @@ export default function CartPage() {
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping])
 
   const canCheckout = items.length > 0 && !loadingProducts && !productsError && status === 'authenticated'
-
-  function notify(title: string, description?: string, variant: 'default' | 'destructive' = 'default') {
-    toast({ title, description, variant })
-  }
 
   function onQtyMinus(id: number, current: number) {
     updateQuantity(id, clampQty(current - 1))
@@ -230,6 +251,42 @@ export default function CartPage() {
     setCheckoutStep('payment-details')
   }
 
+  useEffect(() => {
+    if (checkoutStep !== 'confirmation') return
+    if (selectedPayment !== 'mpesa') return
+    if (!orderDetails?.order_id) return
+    if (!session?.accessToken) return
+
+    if (orderDetails.status === 'paid' || orderDetails.status === 'failed') return
+
+    let alive = true
+    const orderId = orderDetails.order_id
+
+    const timer = setInterval(async () => {
+      try {
+        const latest = await fetchOrderStatus(orderId, session.accessToken as string)
+        if (!alive) return
+
+        setOrderDetails((prev) => ({ ...(prev || { order_id: orderId }), ...latest }))
+
+        if (latest.status === 'paid') {
+          notify('Payment confirmed', 'M-Pesa payment received. Thank you!')
+          clearCart()
+          clearInterval(timer)
+        } else if (latest.status === 'failed') {
+          notify('Payment failed', 'Payment was not completed. You can try again.', 'destructive')
+          clearInterval(timer)
+        }
+      } catch {
+      }
+    }, 3000)
+
+    return () => {
+      alive = false
+      clearInterval(timer)
+    }
+  }, [checkoutStep, selectedPayment, orderDetails?.order_id, orderDetails?.status, session?.accessToken, clearCart])
+
   async function handlePaymentDetailsSubmit() {
     if (!session?.accessToken) {
       router.push('/auth/signin?callbackUrl=' + encodeURIComponent('/cart'))
@@ -241,42 +298,6 @@ export default function CartPage() {
       return
     }
 
-    setCheckoutLoading(true)
-
-    if (selectedPayment === 'mpesa') {
-      let digits = normalizePhone(paymentDetails.phone)
-
-      
-      if (!digits || digits.length < 9) {
-        notify('Invalid phone number', 'Enter a valid M-Pesa phone number.', 'destructive')
-        return
-      }
-
-      
-      if (digits.startsWith('0')) digits = '254' + digits.slice(1)
-
-      const res = await fetch("/mpesa/pay", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.accessToken}`,
-        },
-        body: JSON.stringify({
-          phone: digits,
-          order_id: orderDetails.order_id
-        }),
-      })
-
-      const data = await res.json()
-      console.log("STK push response:", data)
-      if (data.error) {
-        notify("STK push failed", data.error, "destructive")
-        return
-      }
-      notify("STK push sent", `CheckoutRequestID: ${data.checkout_request_id}`)
-    }
-
-
     if (selectedPayment === 'card') {
       const num = paymentDetails.cardNumber.replace(/\s/g, '')
       if (num.length < 12 || !paymentDetails.expiry || paymentDetails.cvv.length < 3) {
@@ -285,15 +306,60 @@ export default function CartPage() {
       }
     }
 
+    let mpesaDigits = ''
+    if (selectedPayment === 'mpesa') {
+      let digits = normalizePhone(paymentDetails.phone)
+      if (!digits || digits.length < 9) {
+        notify('Invalid phone number', 'Enter a valid M-Pesa phone number.', 'destructive')
+        return
+      }
+      if (digits.startsWith('0')) digits = '254' + digits.slice(1)
+      mpesaDigits = digits
+    }
+
     setCheckoutLoading(true)
     try {
-      const payload = items.map((i) => ({
+
+      const orderItems = items.map((i) => ({
         merchandise_id: i.id,
         quantity: i.quantity,
       }))
 
-      const res = await createOrder(payload, session.accessToken)
-      setOrderDetails(res)
+      const created: OrderDetails = await createOrder(orderItems, session.accessToken as string)
+
+      setOrderDetails(created)
+
+      if (selectedPayment === 'mpesa') {
+        const res = await fetch(`${BASE}/mpesa/pay`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+          body: JSON.stringify({
+            phone: mpesaDigits,
+            order_id: created.order_id,
+          }),
+        })
+
+        const data = await res.json().catch(() => ({} as any))
+
+        if (!res.ok || data?.error) {
+          notify('STK push failed', data?.error || 'Failed to initiate STK push.', 'destructive')
+          return
+        }
+
+        setOrderDetails((prev) => ({
+          ...(prev || created),
+          checkout_request_id: data.checkout_request_id ?? prev?.checkout_request_id ?? null,
+          merchant_request_id: data.merchant_request_id ?? prev?.merchant_request_id ?? null,
+        }))
+
+        notify('STK push sent', 'Approve the payment on your phone. We will confirm automatically.')
+        setCheckoutStep('confirmation')
+        return
+      }
+
       clearCart()
       setCheckoutStep('confirmation')
       notify('Order placed', 'Your order was created successfully.')
@@ -311,7 +377,7 @@ export default function CartPage() {
         ? 'Select Payment Method'
         : checkoutStep === 'payment-details'
           ? 'Enter Payment Details'
-          : 'Order Confirmed'
+          : 'Order Status'
 
   const pageSubtitle =
     checkoutStep === 'cart'
@@ -320,13 +386,14 @@ export default function CartPage() {
         ? 'Choose how you want to pay for your order.'
         : checkoutStep === 'payment-details'
           ? 'Complete payment details to place your order.'
-          : 'Your order has been placed successfully.'
+          : selectedPayment === 'mpesa' && orderDetails?.status !== 'paid'
+            ? 'Waiting for M-Pesa confirmation. Approve the prompt on your phone.'
+            : 'Your order has been placed successfully.'
 
   return (
     <div className="min-h-screen">
       <Navbar />
 
-      {/*Loading UI is conditional, but hooks are already executed */}
       {status === 'loading' ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -347,28 +414,6 @@ export default function CartPage() {
 
           <section className="py-12">
             <div className="max-w-7xl mx-auto px-4">
-              {(loadingProducts || productsError) && checkoutStep === 'cart' && (
-                <Card className={cn('mb-6 p-4', productsError && 'border border-destructive/30')}>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-sm">
-                      {loadingProducts ? (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Loading product details…
-                        </div>
-                      ) : productsError ? (
-                        <div className="text-destructive">{productsError}</div>
-                      ) : null}
-                    </div>
-                    {productsError && (
-                      <Button variant="outline" onClick={() => location.reload()}>
-                        Retry
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              )}
-
               {checkoutStep === 'cart' && (
                 <>
                   {items.length === 0 ? (
@@ -399,13 +444,13 @@ export default function CartPage() {
                             <Card key={item.id} className="p-4">
                               <div className="flex gap-4">
                                 <div className="h-20 w-20 shrink-0 overflow-hidden rounded border border-border bg-muted">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                 
                                   <img
                                     src={item.product.image_url || ''}
                                     alt={item.product.name}
                                     className="h-full w-full object-cover"
                                     onError={(e) => {
-                                      ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                                      ; (e.currentTarget as HTMLImageElement).style.display = 'none'
                                     }}
                                   />
                                 </div>
@@ -460,10 +505,6 @@ export default function CartPage() {
                                       >
                                         +
                                       </Button>
-
-                                      {typeof stock === 'number' && stock > 0 && atMax && (
-                                        <span className="text-xs text-muted-foreground ml-2">Max</span>
-                                      )}
                                     </div>
 
                                     <Button
@@ -487,7 +528,6 @@ export default function CartPage() {
 
                       <Card className="p-5 h-fit">
                         <h3 className="text-lg font-semibold">Order summary</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Review totals before checkout.</p>
 
                         <div className="mt-5 space-y-3 text-sm">
                           <div className="flex items-center justify-between">
@@ -509,11 +549,6 @@ export default function CartPage() {
                           <Button className="w-full" onClick={handleCheckout} disabled={!canCheckout}>
                             Proceed to Checkout
                           </Button>
-                          <a href="/shop" className="block">
-                            <Button variant="outline" className="w-full">
-                              Continue shopping
-                            </Button>
-                          </a>
                         </div>
 
                         <div className="mt-5 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
@@ -534,7 +569,6 @@ export default function CartPage() {
                   <div className="lg:col-span-2">
                     <Card className="p-6">
                       <h3 className="text-lg font-semibold">Choose payment method</h3>
-                      <p className="text-sm text-muted-foreground mt-1">Select one option to continue.</p>
 
                       <RadioGroup
                         value={selectedPayment}
@@ -705,17 +739,61 @@ export default function CartPage() {
 
               {checkoutStep === 'confirmation' && (
                 <Card className="max-w-xl mx-auto p-8 text-center">
-                  <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold mb-2">Order confirmed</h3>
+                  <CheckCircle
+                    className={cn(
+                      'h-16 w-16 mx-auto mb-4',
+                      selectedPayment === 'mpesa' && orderDetails?.status !== 'paid' ? 'text-primary' : 'text-green-600'
+                    )}
+                  />
+                  <h3 className="text-2xl font-bold mb-2">
+                    {selectedPayment === 'mpesa' && orderDetails?.status !== 'paid'
+                      ? 'Waiting for payment'
+                      : 'Order confirmed'}
+                  </h3>
+
                   <p className="text-muted-foreground">
                     {orderDetails?.order_id ? (
                       <>
                         Order ID: <span className="font-medium">#{orderDetails.order_id}</span>
+                        {selectedPayment === 'mpesa' && orderDetails?.status ? (
+                          <>
+                            <span className="mx-2">•</span>
+                            Status: <span className="font-medium">{orderDetails.status}</span>
+                          </>
+                        ) : null}
                       </>
                     ) : (
                       'Your order has been placed successfully.'
                     )}
                   </p>
+
+                  {selectedPayment === 'mpesa' && orderDetails?.status !== 'paid' && (
+                    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground text-left">
+                      <div className="font-medium text-foreground">Next step</div>
+                      <p className="mt-1">
+                        Approve the M-Pesa prompt on your phone. This page will update automatically once payment is
+                        confirmed.
+                      </p>
+
+                      {orderDetails?.checkout_request_id ? (
+                        <p className="mt-2">
+                          CheckoutRequestID: <span className="font-mono">{orderDetails.checkout_request_id}</span>
+                        </p>
+                      ) : null}
+
+                      {orderDetails?.merchant_request_id ? (
+                        <p className="mt-2">
+                          MerchantRequestID: <span className="font-mono">{orderDetails.merchant_request_id}</span>
+                        </p>
+                      ) : null}
+
+                      {orderDetails?.mpesa_receipt ? (
+                        <p className="mt-2">
+                          Receipt: <span className="font-mono">{orderDetails.mpesa_receipt}</span>
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
 
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                     <Button onClick={() => router.push('/shop')}>Continue shopping</Button>
