@@ -44,7 +44,6 @@ class MerchandiseList(Resource):
 
         data = request.get_json(silent=True) or {}
 
-        # Basic validation
         if not data.get("name"):
             return {"error": "Missing name"}, 400
         if "price" not in data:
