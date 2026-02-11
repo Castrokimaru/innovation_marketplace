@@ -34,7 +34,7 @@ interface Talent {
   projects: number
   rating: number
 
-  // Optional future fields (only if you add later)
+ 
   github?: string
   linkedin?: string
 }
@@ -431,7 +431,7 @@ export default function TalentsPage() {
 
                           {/* If you don’t have real links, don’t show fake buttons */}
                           {/* Later: add talent.github/talent.linkedin and render real links */}
-                          <Button
+                          {/* <Button
                             variant="outline"
                             className="min-w-[120px]"
                             onClick={() => {
@@ -443,7 +443,7 @@ export default function TalentsPage() {
                             }}
                           >
                             View profile
-                          </Button>
+                          </Button> */}
                         </div>
                       </div>
                     </Card>
