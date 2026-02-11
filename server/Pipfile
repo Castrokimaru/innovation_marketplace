@@ -21,6 +21,7 @@ requests = "*"
 pillow = "*"            
 email-validator = "*"   
 faker = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
