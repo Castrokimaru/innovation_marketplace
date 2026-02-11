@@ -2,14 +2,21 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { BriefcaseBusiness } from 'lucide-react'
+import { BriefcaseBusiness, Calendar, Copy, FolderSearch, Globe, Mail, Users } from 'lucide-react'
+
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-
-import { Heart, Github, Globe, Calendar, Users, ArrowRight, Link2, FolderSearch } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/use-toast'
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
@@ -86,11 +93,14 @@ export default function ProjectDetailPage() {
 
   const { toast } = useToast()
 
-  const [isLiked, setIsLiked] = useState(false)
   const [projects, setProjects] = useState<BackendProject[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+
+  // Share / modal UX
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedEmails, setCopiedEmails] = useState(false)
+  const [hireOpen, setHireOpen] = useState(false)
 
   useEffect(() => {
     const run = async () => {
@@ -119,17 +129,32 @@ export default function ProjectDetailPage() {
   const team = project?.team_members ?? []
   const teamSize = team.length
 
-  const learnMoreHref = '#about'
+  const statusLabel = project?.status
+    ? project.status.charAt(0).toUpperCase() + project.status.slice(1)
+    : ''
+
   const demoLink = project && isProbablyUrl(project.video) ? project.video : undefined
 
-  // Optional: add when backend provides it
-  const githubLink = undefined as string | undefined
+  const shortDescription = useMemo(() => {
+    const text = (project?.description ?? '').trim()
+    if (!text) return ''
+    return text.length > 180 ? text.slice(0, 180).trim() + '…' : text
+  }, [project?.description])
+
+  const teamEmails = useMemo(() => {
+    const emails = (project?.team_members ?? [])
+      .map((m) => (m.email ?? '').trim())
+      .filter(Boolean)
+    // de-dupe
+    return Array.from(new Set(emails))
+  }, [project?.team_members])
 
   const onCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1500)
+      setCopiedLink(true)
+      window.setTimeout(() => setCopiedLink(false), 1500)
+      toast({ title: 'Link copied', description: 'You can share this project with others.' })
     } catch {
       toast({
         title: 'Copy failed',
@@ -139,18 +164,25 @@ export default function ProjectDetailPage() {
     }
   }
 
-  /**
-   * ✅ WORKING HIRE IMPLEMENTATION (no backend needed)
-   * Opens the recruiter’s email client with pre-filled recipients (team emails).
-   */
-  const onHire = () => {
+  const onCopyEmails = async () => {
+    if (teamEmails.length === 0) return
+    try {
+      await navigator.clipboard.writeText(teamEmails.join(', '))
+      setCopiedEmails(true)
+      window.setTimeout(() => setCopiedEmails(false), 1500)
+      toast({ title: 'Emails copied', description: 'Paste into your email client to contact the team.' })
+    } catch {
+      toast({
+        title: 'Copy failed',
+        description: 'Your browser blocked clipboard access.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const onOpenMailClient = () => {
     if (!project) return
-
-    const emails = (project.team_members ?? [])
-      .map((m) => m.email)
-      .filter(Boolean)
-
-    if (emails.length === 0) {
+    if (teamEmails.length === 0) {
       toast({
         title: 'No contact info available',
         description: 'This project does not include team emails yet.',
@@ -159,7 +191,7 @@ export default function ProjectDetailPage() {
       return
     }
 
-    const to = emails.join(',')
+    const to = teamEmails.join(',')
     const subject = encodeURIComponent(`Hiring inquiry: ${project.title}`)
     const body = encodeURIComponent(
       `Hi ${project.submitted_name ?? 'Team'},\n\n` +
@@ -169,8 +201,22 @@ export default function ProjectDetailPage() {
         `Recruiter`
     )
 
-    // Opens default mail app (works reliably)
     window.location.href = `mailto:${to}?subject=${subject}&body=${body}`
+  }
+
+  const onHireClick = () => {
+    if (!project) return
+
+    if (teamEmails.length === 0) {
+      toast({
+        title: 'No contact info available',
+        description: 'This project does not include team emails yet.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setHireOpen(true)
   }
 
   if (loading) {
@@ -238,133 +284,59 @@ export default function ProjectDetailPage() {
           <div className="pointer-events-none absolute -bottom-24 right-12 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
           <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
-              {/* Left */}
-              <div className="lg:col-span-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
-                    {categoryLabel}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={`rounded-full px-3 py-1 text-xs border ${getStatusBadgeVariant(project.status)}`}
-                  >
-                    {project.status}
-                  </Badge>
-                  <a
-                    href={learnMoreHref}
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-foreground/70 backdrop-blur hover:bg-background"
-                  >
-                    Learn more <ArrowRight className="h-3.5 w-3.5" />
-                  </a>
+            <div className="max-w-3xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
+                  {categoryLabel}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className={`rounded-full px-3 py-1 text-xs border ${getStatusBadgeVariant(project.status)}`}
+                >
+                  {statusLabel}
+                </Badge>
+              </div>
+
+              <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{project.title}</h1>
+              <p className="mt-3 text-base text-foreground/60 sm:text-lg">{shortDescription}</p>
+
+              <div className="mt-5 flex flex-wrap gap-4 text-sm text-foreground/60">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>Submitted {formatDate(project.created_at)}</span>
                 </div>
 
-                <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{project.title}</h1>
-                <p className="mt-3 text-base text-foreground/60 sm:text-lg">{project.description}</p>
-
-                <div className="mt-5 flex flex-wrap gap-4 text-sm text-foreground/60">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>Submitted {formatDate(project.created_at)}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{teamSize} team members</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span>Submitted by {project.submitted_name}</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span>{teamSize} team members</span>
                 </div>
 
-                {/* quick actions row */}
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Button variant="outline" onClick={onCopyLink}>
-                    <Link2 className="mr-2 h-4 w-4" />
-                    {copied ? 'Copied!' : 'Copy link'}
-                  </Button>
-
-                  <a href={learnMoreHref}>
-                    <Button>
-                      Learn more
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </a>
-
-                  {demoLink && (
-                    <a href={demoLink} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline">
-                        <Globe className="mr-2 h-4 w-4" />
-                        Demo / Video
-                      </Button>
-                    </a>
-                  )}
-
-                  {githubLink && (
-                    <a href={githubLink} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline">
-                        <Github className="mr-2 h-4 w-4" />
-                        GitHub
-                      </Button>
-                    </a>
-                  )}
+                <div className="flex items-center gap-2">
+                  <span>Submitted by {project.submitted_name}</span>
                 </div>
               </div>
 
-              {/* Right Action Card */}
-              <Card className="border-border/60 bg-background/70 p-5 backdrop-blur">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold">Project actions</div>
-                    <div className="mt-1 text-xs text-foreground/60">Save, share, and contact the team.</div>
-                  </div>
-                  <div className="rounded-lg bg-muted/50 px-3 py-2 text-2xl">💻</div>
-                </div>
+              {/* Primary actions */}
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Button onClick={onHireClick}>
+                  <BriefcaseBusiness className="mr-2 h-4 w-4" />
+                  Contact / Hire
+                </Button>
 
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setIsLiked((v) => !v)}
-                    aria-label="Like project"
-                  >
-                    <Heart className={`mr-2 h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                    {isLiked ? 'Liked' : 'Like'}
-                  </Button>
-
-                  <Button type="button" className="w-full" onClick={onHire} aria-label="Hire team">
-                    <BriefcaseBusiness className="mr-2 h-4 w-4" />
-                    Hire
-                  </Button>
-                </div>
-
-                <div className="mt-4 space-y-2 rounded-lg border border-border/60 bg-background p-3">
-                  <div className="text-xs text-foreground/60">Quick info</div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground/60">Category</span>
-                    <span className="font-medium">{categoryLabel}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground/60">Team size</span>
-                    <span className="font-medium">{teamSize}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground/60">Status</span>
-                    <span className="font-medium">{project.status}</span>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <a href={learnMoreHref} className="block">
-                    <Button className="w-full">
-                      Learn more about this project
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                {demoLink && (
+                  <a href={demoLink} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline">
+                      <Globe className="mr-2 h-4 w-4" />
+                      Demo
                     </Button>
                   </a>
-                </div>
-              </Card>
+                )}
+
+                <Button variant="outline" onClick={onCopyLink}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  {copiedLink ? 'Copied' : 'Share'}
+                </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -401,28 +373,23 @@ export default function ProjectDetailPage() {
                   </Card>
                 </div>
 
-                {/* Explore links */}
-                {(demoLink || githubLink) && (
+                {/* Demo link section (optional, clean) */}
+                {demoLink && (
                   <div className="space-y-4">
-                    <h2 className="text-xl font-bold sm:text-2xl">Explore</h2>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      {demoLink && (
-                        <a href={demoLink} target="_blank" rel="noopener noreferrer" className="flex-1">
-                          <Button className="w-full">
+                    <h2 className="text-xl font-bold sm:text-2xl">Demo</h2>
+                    <Card className="border-border/60 bg-background/70 p-6 backdrop-blur">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-sm text-foreground/60">
+                          Open the project demo/video in a new tab.
+                        </div>
+                        <a href={demoLink} target="_blank" rel="noopener noreferrer">
+                          <Button>
                             <Globe className="mr-2 h-4 w-4" />
                             View demo
                           </Button>
                         </a>
-                      )}
-                      {githubLink && (
-                        <a href={githubLink} target="_blank" rel="noopener noreferrer" className="flex-1">
-                          <Button variant="outline" className="w-full">
-                            <Github className="mr-2 h-4 w-4" />
-                            GitHub repository
-                          </Button>
-                        </a>
-                      )}
-                    </div>
+                      </div>
+                    </Card>
                   </div>
                 )}
               </div>
@@ -474,23 +441,88 @@ export default function ProjectDetailPage() {
                   </div>
                 </Card>
 
-                {/* Learn more */}
+                {/* Contact teaser (simple + professional) */}
                 <Card className="border-border/60 bg-background/70 p-6 backdrop-blur">
-                  <h3 className="font-bold text-lg">Learn more</h3>
+                  <h3 className="font-bold text-lg">Work with this team</h3>
                   <p className="mt-2 text-sm text-foreground/60">
-                    Want more context? Read the full overview and technologies used.
+                    Reach out to the developers directly to discuss hiring, collaboration, or next steps.
                   </p>
-                  <a href={learnMoreHref} className="mt-4 block">
-                    <Button variant="outline" className="w-full">
-                      Jump to project overview
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                  <div className="mt-4">
+                    <Button className="w-full" onClick={onHireClick}>
+                      <BriefcaseBusiness className="mr-2 h-4 w-4" />
+                      Contact / Hire
                     </Button>
-                  </a>
+                  </div>
                 </Card>
               </div>
             </div>
           </div>
         </section>
+
+        {/* HIRE MODAL */}
+        <Dialog open={hireOpen} onOpenChange={setHireOpen}>
+          <DialogTrigger asChild>
+            {/* hidden trigger: we open via state */}
+            <span className="hidden" />
+          </DialogTrigger>
+
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Contact the team</DialogTitle>
+              <DialogDescription>
+                Use the options below to reach the developers. No backend required.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="rounded-lg border border-border/60 bg-background p-4">
+                <div className="text-sm font-semibold">Team emails</div>
+                <div className="mt-2 space-y-2">
+                  {teamEmails.length > 0 ? (
+                    teamEmails.map((email) => (
+                      <div
+                        key={email}
+                        className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-muted/30 px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm">{email}</p>
+                        </div>
+                        <a
+                          href={`mailto:${encodeURIComponent(email)}`}
+                          className="shrink-0"
+                          aria-label={`Email ${email}`}
+                        >
+                          <Button size="sm" variant="outline">
+                            <Mail className="mr-2 h-4 w-4" />
+                            Email
+                          </Button>
+                        </a>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No team emails available.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button variant="outline" onClick={onCopyEmails} disabled={teamEmails.length === 0}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  {copiedEmails ? 'Copied' : 'Copy all emails'}
+                </Button>
+
+                <Button onClick={onOpenMailClient} disabled={teamEmails.length === 0}>
+                  <BriefcaseBusiness className="mr-2 h-4 w-4" />
+                  Open mail client
+                </Button>
+              </div>
+
+              <div className="rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-foreground/60">
+                Tip: Use “Copy all emails” if you prefer contacting the team through a different tool (LinkedIn, CRM, etc.).
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
 
       <Footer />

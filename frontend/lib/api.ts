@@ -2,9 +2,16 @@ const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
 
 function authHeaders(token?: string): HeadersInit {
   if (!token) return {}
-
   const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
   return { Authorization: `Bearer ${cleaned}` }
+}
+
+async function safeJson(res: Response) {
+  try {
+    return await res.json()
+  } catch {
+    return {}
+  }
 }
 
 export async function fetchMerchandise() {
@@ -32,10 +39,8 @@ export async function createMerchandise(
     body: JSON.stringify(payload),
   })
 
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    throw new Error(data.error || data.message || 'Failed to create merchandise')
-  }
+  const data = await safeJson(res)
+  if (!res.ok) throw new Error((data as any).error || (data as any).message || 'Failed to create merchandise')
   return data
 }
 
@@ -59,10 +64,8 @@ export async function updateMerchandise(
     body: JSON.stringify(payload),
   })
 
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    throw new Error(data.error || data.message || 'Failed to update merchandise')
-  }
+  const data = await safeJson(res)
+  if (!res.ok) throw new Error((data as any).error || (data as any).message || 'Failed to update merchandise')
   return data
 }
 
@@ -74,10 +77,8 @@ export async function deleteMerchandise(id: number, token?: string) {
     },
   })
 
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    throw new Error(data.error || data.message || 'Failed to delete merchandise')
-  }
+  const data = await safeJson(res)
+  if (!res.ok) throw new Error((data as any).error || (data as any).message || 'Failed to delete merchandise')
   return data
 }
 
@@ -88,13 +89,13 @@ export async function fetchProjects(token?: string) {
     },
     cache: 'no-store',
   })
+
   if (!res.ok) throw new Error('Failed to fetch projects')
   return res.json()
 }
 
 export async function fetchMyProjectsFromAllProjects(userId: number, token?: string) {
   const projects = await fetchProjects(token)
-
   if (!Array.isArray(projects)) return []
 
   return projects.filter((p: any) => {
@@ -113,10 +114,8 @@ export async function createOrder(items: Array<{ merchandise_id: number; quantit
     body: JSON.stringify({ items }),
   })
 
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    throw new Error(data.error || data.message || 'Failed to create order')
-  }
+  const data = await safeJson(res)
+  if (!res.ok) throw new Error((data as any).error || (data as any).message || 'Failed to create order')
   return data
 }
 
@@ -134,7 +133,6 @@ export type CreateProjectPayload = {
 
 export async function createProject(payload: CreateProjectPayload, token?: string) {
   const headers: HeadersInit = { 'Content-Type': 'application/json' }
-
   if (token) {
     const cleaned = token.startsWith('Bearer ') ? token.slice(7) : token
     headers['Authorization'] = `Bearer ${cleaned}`
@@ -146,8 +144,8 @@ export async function createProject(payload: CreateProjectPayload, token?: strin
     body: JSON.stringify(payload),
   })
 
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || data.message || 'Failed to create project')
+  const data = await safeJson(res)
+  if (!res.ok) throw new Error((data as any).error || (data as any).message || 'Failed to create project')
   return data
 }
 
@@ -164,10 +162,8 @@ export async function signup(payload: {
     body: JSON.stringify(payload),
   })
 
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    throw new Error(data.error || 'Signup failed')
-  }
+  const data = await safeJson(res)
+  if (!res.ok) throw new Error((data as any).error || 'Signup failed')
   return data
 }
 
@@ -193,11 +189,8 @@ export async function updateProfile(payload: UpdateProfilePayload, token?: strin
     body: JSON.stringify(payload),
   })
 
-  const data = await res.json().catch(() => ({}))
-
-  if (!res.ok) {
-    throw new Error(data.error || data.message || 'Failed to update profile')
-  }
+  const data = await safeJson(res)
+  if (!res.ok) throw new Error((data as any).error || (data as any).message || 'Failed to update profile')
 
   return data as {
     message: string
@@ -215,4 +208,3 @@ export async function fetchUsers(token: string) {
   if (!res.ok) throw new Error('Failed to fetch users')
   return res.json()
 }
-

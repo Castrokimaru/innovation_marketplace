@@ -91,7 +91,7 @@ async function readError(res: Response) {
       return JSON.stringify(data)
     }
   } catch {
-    // ignore
+    
   }
   try {
     const text = await res.text()

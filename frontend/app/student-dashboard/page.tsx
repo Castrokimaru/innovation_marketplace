@@ -289,7 +289,6 @@ export default function StudentDashboard() {
     }))
   }, [filtered, username])
 
-  // ✅ Avoid infinite loader when session is null
   if (status === 'loading') return <LoadingShell />
   if (!session) return null
 
@@ -306,7 +305,7 @@ export default function StudentDashboard() {
               <span className="text-sm">Student Dashboard</span>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {username} 👋</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {username} </h1>
             <p className="max-w-2xl text-foreground/70">
               Track your submissions, check review status, and keep your portfolio up to date.
             </p>
