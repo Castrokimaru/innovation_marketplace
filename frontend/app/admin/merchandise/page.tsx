@@ -500,7 +500,7 @@ export default function MerchandiseManagement() {
                 onChange={(e) => setNewProduct({ ...newProduct, image_url: e.target.value })}
                 placeholder="https://..."
               />
-              <p className="text-xs text-muted-foreground">Optional. If missing, we’ll show a placeholder.</p>
+              
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
