@@ -1,6 +1,6 @@
 from app import app
 from models import (db,User,UserRole,Project,UserProject,Category,ProjectCategory,Merchandise,Order,OrderMerchandise,)
-from datetime import datetime
+from datetime import datetime, UTC
 from werkzeug.security import generate_password_hash
 from faker import Faker
 import random
@@ -43,7 +43,7 @@ def seed_users():
         password_hash=generate_password_hash("Admin1234"),
         role_id=admin_role.id,
         status="active",
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(UTC),
     )
     db.session.add(admin)
 
@@ -52,7 +52,7 @@ def seed_users():
         student = User(
             first_name=fake.first_name(),
             last_name=fake.last_name(),
-            email=fake.unique.email(),
+            email=fake.unique.email()[:255],
             password_hash=generate_password_hash("Student1234"),
             role_id=student_role.id,
             status="active",
