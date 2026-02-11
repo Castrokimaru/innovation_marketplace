@@ -97,7 +97,6 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Share / modal UX
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedEmails, setCopiedEmails] = useState(false)
   const [hireOpen, setHireOpen] = useState(false)
@@ -145,7 +144,7 @@ export default function ProjectDetailPage() {
     const emails = (project?.team_members ?? [])
       .map((m) => (m.email ?? '').trim())
       .filter(Boolean)
-    // de-dupe
+   
     return Array.from(new Set(emails))
   }, [project?.team_members])
 
@@ -276,7 +275,7 @@ export default function ProjectDetailPage() {
       <Navbar />
 
       <main>
-        {/* HERO */}
+        {/* HERO  */}
         <section className="relative overflow-hidden border-b border-border">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
           <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
@@ -373,7 +372,7 @@ export default function ProjectDetailPage() {
                   </Card>
                 </div>
 
-                {/* Demo link section (optional, clean) */}
+                {/* Demo link section */}
                 {demoLink && (
                   <div className="space-y-4">
                     <h2 className="text-xl font-bold sm:text-2xl">Demo</h2>
@@ -441,7 +440,7 @@ export default function ProjectDetailPage() {
                   </div>
                 </Card>
 
-                {/* Contact teaser (simple + professional) */}
+                {/* Contact teaser */}
                 <Card className="border-border/60 bg-background/70 p-6 backdrop-blur">
                   <h3 className="font-bold text-lg">Work with this team</h3>
                   <p className="mt-2 text-sm text-foreground/60">
@@ -462,16 +461,12 @@ export default function ProjectDetailPage() {
         {/* HIRE MODAL */}
         <Dialog open={hireOpen} onOpenChange={setHireOpen}>
           <DialogTrigger asChild>
-            {/* hidden trigger: we open via state */}
-            <span className="hidden" />
+              <span className="hidden" />
           </DialogTrigger>
 
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Contact the team</DialogTitle>
-              <DialogDescription>
-                Use the options below to reach the developers. No backend required.
-              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">

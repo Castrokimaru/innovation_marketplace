@@ -241,7 +241,7 @@ export default function RecruiterDashboard() {
               <span className="text-sm">Recruiter Dashboard</span>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {recruiterName} 👋</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {recruiterName}</h1>
             <p className="max-w-2xl text-foreground/70">
               Browse approved projects, evaluate stacks, and contact teams to hire faster.
             </p>
