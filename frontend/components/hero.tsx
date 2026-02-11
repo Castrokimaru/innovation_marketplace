@@ -25,10 +25,9 @@ export function Hero() {
     router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
   }
 
-  // Public browse (recommended for landing page)
+
   const handleExploreProjects = () => router.push('/projects')
 
-  // If you want protected browse, swap to this
   const handleExploreProjectsProtected = () => {
     if (!session) {
       goToSignIn()
@@ -41,13 +40,13 @@ export function Hero() {
     {
       title: 'AgriTech Smart Farming',
       tag: 'AgriTech',
-      img: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=900&q=80',
+      img: 'https://i.pinimg.com/1200x/d2/cd/b7/d2cdb7fc087d189a7f683bec49156a49.jpg',
       href: '/projects?category=AgriTech',
     },
     {
       title: 'HealthTech Appointment System',
       tag: 'HealthTech',
-      img: 'https://images.unsplash.com/photo-1581093588401-22d00f98f1a0?auto=format&fit=crop&w=900&q=80',
+      img: 'https://i.pinimg.com/736x/c3/e0/28/c3e0280150f3f52f6b47fad8c92033e8.jpg',
       href: '/projects?category=HealthTech',
     },
     {
@@ -119,7 +118,7 @@ export function Hero() {
                 variant="outline"
                 className="border-yellow-400/40 bg-white/5 text-yellow-100 hover:bg-yellow-400/10 hover:text-yellow-50"
                 onClick={handleExploreProjects}
-                // onClick={handleExploreProjectsProtected}
+               
               >
                 Explore projects
               </Button>
