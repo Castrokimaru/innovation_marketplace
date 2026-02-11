@@ -272,7 +272,7 @@ export default function UsersManagement() {
                   <th className="px-6 py-4 text-left font-semibold text-foreground">Status</th>
                   <th className="px-6 py-4 text-center font-semibold text-foreground">Projects</th>
                   <th className="px-6 py-4 text-left font-semibold text-foreground">Joined</th>
-                  <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th>
+                  {/* <th className="px-6 py-4 text-center font-semibold text-foreground">Actions</th> */}
                 </tr>
               </thead>
 
@@ -306,7 +306,7 @@ export default function UsersManagement() {
                     <td className="px-6 py-4 text-foreground/70">{user.joined}</td>
 
                     <td className="px-6 py-4">
-                      <div className="flex justify-center gap-2">
+                      {/* <div className="flex justify-center gap-2">
                         <Button variant="ghost" size="sm" title="View Profile (UI only)">
                           <Shield className="h-4 w-4" />
                         </Button>
@@ -333,7 +333,7 @@ export default function UsersManagement() {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
+                      </div> */}
                     </td>
                   </tr>
                 ))}
