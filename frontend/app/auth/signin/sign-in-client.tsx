@@ -64,7 +64,7 @@ export default function SignInClient() {
       {/* Alerts */}
       <div className="space-y-2">
         {registered && (
-          <div className="rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent-foreground">
+          <div className="rounded-md border border-accent/30 bg-accent/100 px-3 py-2 text-sm text-accent-foreground">
             <span className="font-medium">Registration successful.</span> Please sign in.
           </div>
         )}
