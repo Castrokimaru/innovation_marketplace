@@ -160,7 +160,7 @@ export default function SubmitProjectPage() {
       submitted_name,
       team_members: values.contributors || [],
       category: values.category,
-      category_ids: [], // optional: keep for future
+      category_ids: [], 
     }
 
     try {
