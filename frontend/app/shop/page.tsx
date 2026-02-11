@@ -278,9 +278,9 @@ export default function ShopPage() {
         <section className="border-t border-border bg-muted/30 py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-8 md:grid-cols-3">
-              <InfoTile title="🚚 Fast Shipping" text="Free shipping on orders over 5,000 KES within Nairobi." />
-              <InfoTile title="✨ Quality Guaranteed" text="Premium materials and printing on all products." />
-              <InfoTile title="💚 Community First" text="Profits support Moringa students and community programs." />
+              <InfoTile title=" Fast Shipping" text="Free shipping on orders over 5,000 KES within Nairobi." />
+              <InfoTile title="Quality Guaranteed" text="Premium materials and printing on all products." />
+              <InfoTile title=" Community First" text="Profits support Moringa students and community programs." />
             </div>
           </div>
         </section>
@@ -291,11 +291,6 @@ export default function ShopPage() {
   )
 }
 
-/**
- * GRID CARD
- * - shorter cards (square image)
- * - hover-only actions (wishlist + add button appears on hover)
- */
 function ProductCardGrid({
   product,
   qty,
