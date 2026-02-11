@@ -55,9 +55,7 @@ class Login(Resource):
         if not user or not check_password_hash(user.password_hash, password):
             return {"error": "Invalid credentials"}, 401
 
-        # IMPORTANT:
-        # Some JWT configurations require the "sub" (subject) to be a STRING.
-        # Store user.id as a string, then cast back to int in protected routes.
+       
         token = create_access_token(identity=str(user.id))
 
         return {
@@ -73,7 +71,7 @@ class Login(Resource):
 class UpdateProfile(Resource):
     @jwt_required()
     def patch(self):
-        # Identity is stored as a string -> cast back to int safely
+        
         raw_id = get_jwt_identity()
         try:
             user_id = int(raw_id)
