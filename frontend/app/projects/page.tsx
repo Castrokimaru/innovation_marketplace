@@ -35,10 +35,7 @@ type Project = {
   submitted_name?: string
   technologies?: string[] | string
   categories?: { name: string }[]
-
-  // ✅ NEW: backend field (from GET /projects)
   thumbnail_url?: string | null
-
   views?: number
   rating?: number
   liked_by_me?: boolean
@@ -124,7 +121,7 @@ export default function ProjectsPage() {
       <Navbar />
 
       <main className="pb-12">
-        {/* Themed Header (matches your newer pages) */}
+        {/* Themed Header */}
         <section className="relative overflow-hidden border-b border-border">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
           <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
@@ -262,10 +259,7 @@ export default function ProjectsPage() {
                       id={project.id}
                       title={project.title ?? 'Untitled project'}
                       description={project.description ?? 'No description provided.'}
-
-                      // ✅ IMPORTANT: pass backend thumbnail_url into ProjectCard
                       image={project.thumbnail_url ?? undefined}
-
                       technologies={normalizeTech(project.technologies)}
                       category={cat}
                       author={project.submitted_name || 'Team'}

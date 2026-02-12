@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_req
 
 import os
 import uuid
+import requests
 from werkzeug.utils import secure_filename
 
 from models import db, Project, UserProject, ProjectCategory, User, Category, ProjectLike
@@ -186,10 +187,8 @@ class ProjectList(Resource):
         db.session.add(project)
         db.session.commit()
 
-        # creator
         db.session.add(UserProject(user_id=user_id, project_id=project.id, action="creator"))
 
-        # contributors
         for member_id in team_members:
             if member_id == user_id:
                 continue
@@ -197,13 +196,11 @@ class ProjectList(Resource):
             if user:
                 db.session.add(UserProject(user_id=user.id, project_id=project.id, action="contributor"))
 
-        # categories by IDs (optional support)
         for cat_id in category_ids:
             category = Category.query.get(cat_id)
             if category:
                 db.session.add(ProjectCategory(project_id=project.id, category_id=category.id))
 
-        # categories by name
         if not category_ids and category_name:
             category = Category.query.filter_by(name=category_name).first()
             if category:
@@ -281,3 +278,107 @@ class ProjectDetail(Resource):
 
         db.session.commit()
         return {"message": "Project updated"}, 200
+
+
+def _unique_team_emails(project: Project):
+    emails = []
+    seen = set()
+    for up in project.users:
+        if not up.user:
+            continue
+        e = (up.user.email or "").strip().lower()
+        if e and e not in seen:
+            seen.add(e)
+            emails.append(e)
+    return emails
+
+
+class ProjectContactTeam(Resource):
+    """
+    POST /projects/<project_id>/contact
+
+    Body:
+      { "subject": "...", "message": "..." }
+
+    Sends email to ALL project team members (creator + contributors) using Resend.
+    """
+
+    def post(self, project_id):
+        try:
+            verify_jwt_in_request(optional=True)
+            sender_user_id = get_jwt_identity()
+        except Exception:
+            sender_user_id = None
+
+        data = request.get_json(silent=True) or {}
+        subject = (data.get("subject") or "").strip()
+        message = (data.get("message") or "").strip()
+
+        if not subject:
+            return {"error": "Subject is required"}, 400
+        if not message:
+            return {"error": "Message is required"}, 400
+        if len(message) > 5000:
+            return {"error": "Message too long (max 5000 chars)"}, 400
+
+        project = Project.query.get(project_id)
+        if not project:
+            return {"error": "Project not found"}, 404
+
+        to_emails = _unique_team_emails(project)
+        if not to_emails:
+            return {"error": "No team emails available for this project"}, 400
+
+        resend_key = os.getenv("RESEND_API_KEY")
+        resend_from = os.getenv("RESEND_FROM")
+
+        if not resend_key or not resend_from:
+            return {"error": "Email service not configured (RESEND_API_KEY / RESEND_FROM missing)"}, 500
+
+        sender_line = ""
+        if sender_user_id:
+            sender = User.query.get(sender_user_id)
+            if sender:
+                sender_line = f"\n\n---\nFrom: {sender.first_name} {sender.last_name} <{sender.email}>\n"
+
+        email_text = (
+            f"Project: {project.title}\n"
+            f"Submitted by: {project.submitted_name}\n\n"
+            f"{message}"
+            f"{sender_line}"
+        )
+
+        testing_email = os.getenv("RESEND_TEST_EMAIL")
+        if testing_email:
+            to_emails = [testing_email.strip().lower()]
+
+
+        payload = {
+            "from": resend_from,
+            "to": to_emails,
+            "subject": subject,
+            "text": email_text,
+        }
+
+        try:
+            r = requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=20,
+            )
+
+            if r.status_code >= 400:
+                try:
+                    detail = r.json()
+                except Exception:
+                    detail = {"message": r.text}
+                return {"error": "Failed to send email", "details": detail}, 502
+
+            return {"ok": True, "sent_to": len(to_emails)}, 200
+
+        except requests.RequestException as e:
+            return {"error": "Failed to send email", "details": str(e)}, 502

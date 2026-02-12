@@ -288,11 +288,7 @@ export default function StudentDashboard() {
       author: p.submitted_name ?? username,
       views: 0,
       rating: 0,
-
-      // ✅ FIX: feed backend thumbnail into ProjectCard
-      // ProjectCard will resolve "/uploads/..." -> `${BASE}/uploads/...`
       image: (p.thumbnail_url ?? '').trim() || undefined,
-
       status: statusLabel(p.status),
     }))
   }, [filtered, username])

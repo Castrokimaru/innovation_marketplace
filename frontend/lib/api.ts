@@ -14,12 +14,11 @@ async function safeJson(res: Response) {
   }
 }
 
-// ✅ normalize project image field everywhere
 function normalizeProject(p: any) {
   if (!p || typeof p !== 'object') return p
   return {
     ...p,
-    // backend returns thumbnail_url; many pages still expect image
+
     image: p.image ?? p.thumbnail_url ?? null,
   }
 }
@@ -105,7 +104,6 @@ export async function fetchProjects(token?: string) {
   const data = await res.json()
   if (!Array.isArray(data)) return []
 
-  // ✅ ensure every project has .image derived from thumbnail_url
   return data.map(normalizeProject)
 }
 
@@ -190,7 +188,6 @@ export async function fetchApprovedProjects() {
   const data = await res.json()
   if (!Array.isArray(data)) return []
 
-  // ✅ normalize here too, in case recruiters endpoint includes thumbnails
   return data.map(normalizeProject)
 }
 

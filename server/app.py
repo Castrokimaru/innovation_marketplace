@@ -12,7 +12,7 @@ import os
 
 from resources.mpesa import MpesaPay, MpesaCallback
 from resources.auth import Signup, Login, UpdateProfile
-from resources.projects import ProjectList, ProjectDetail
+from resources.projects import ProjectList, ProjectDetail, ProjectContactTeam
 from resources.merchandise import MerchandiseList, MerchandiseItem
 from resources.orders import OrderCreate, OrderDelete
 from resources.admin import CategoryCreate, ApproveProject, RejectProject, AdminUserList
@@ -30,7 +30,6 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret-key")
 
-    # ✅ Where we save thumbnails
     app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads")
 
     db.init_app(app)
@@ -47,6 +46,7 @@ def create_app():
 
     api.add_resource(ProjectList, "/projects")
     api.add_resource(ProjectDetail, "/projects/<int:project_id>")
+    api.add_resource(ProjectContactTeam, "/projects/<int:project_id>/contact")
 
     api.add_resource(ProjectLikeToggle, "/projects/<int:project_id>/like")
 
@@ -68,7 +68,6 @@ def create_app():
 
     @app.route("/uploads/<path:filename>")
     def uploads(filename):
-        # serves files saved in ./uploads
         uploads_dir = app.config["UPLOAD_FOLDER"]
         return send_from_directory(uploads_dir, filename)
 
