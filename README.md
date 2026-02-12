@@ -1,270 +1,241 @@
- Innovation Marketplace
+#  Innovation Marketplace
 
-A full-stack web platform that connects student innovators with recruiters by showcasing reviewed and approved tech projects in a professional marketplace environment.
+A full-stack web platform that connects student innovators with recruiters through a structured, role-based project marketplace.
 
- Overview
+---
 
-Innovation Marketplace is a role-based project marketplace where:
+## Project Description
 
- Students submit and manage their projects
+- Students submit and manage capstone projects  
+- Admins review and approve submissions  
+- Recruiters browse approved projects and evaluate talent  
+- Users can purchase official merchandise  
+- Payments are integrated via M-Pesa (Safaricom Sandbox)  
+- Structured review workflow with secure role-based access control  
 
- Admins review and approve submissions
+---
 
- Recruiters browse approved projects and evaluate talent
+## Live Deployment
 
-Users can purchase merchandise
+- **Frontend:** Add Vercel link here  
+- **Backend API:** Add Render link here  
 
-Payments are integrated via M-Pesa (Safaricom Sandbox)
+---
 
-The platform focuses on structured review, role-based access control, and a clean professional UI.
+## System Architecture
 
- Tech Stack
-Frontend
+- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS, ShadCN UI  
+- **Backend:** Flask REST API  
+- **Database:** PostgreSQL / SQLite  
+- **Authentication:** NextAuth + JWT  
+- **Payments:** M-Pesa Daraja API (Sandbox)  
 
-Next.js (App Router)
+The frontend communicates with the backend API to:
 
-TypeScript
+- Handle authentication  
+- Manage projects  
+- Enforce role-based authorization  
+- Process payments  
+- Create and manage orders  
 
-Tailwind CSS
+---
 
-ShadCN UI
+## User Roles
 
-NextAuth.js (Authentication)
+### Student
 
-Lucide Icons
+- Submit projects  
+- Upload thumbnails  
+- Add technologies and categories  
+- Edit their own submissions  
 
-Backend
+###  Admin
 
-Flask
+- Review submitted projects  
+- Approve or reject submissions  
+- Manage users  
+- Manage merchandise  
 
-SQLAlchemy
+###  Recruiter
 
-PostgreSQL / SQLite
+- Access recruiter dashboard  
+- View approved projects only  
+- Filter by technology  
+- Search by student or team  
+- Evaluate project stack  
 
-Flask-Migrate
+---
 
-JWT Authentication
+## Core Features
 
-M-Pesa Daraja API (Sandbox)
+### Authentication & Authorization
 
-User Roles
-1️ Student
+- Role-based access control  
+- Secure login via NextAuth  
+- Protected recruiter dashboard  
+- Server-side session validation  
 
-Submit projects
+### Project Management
 
-Upload thumbnails
+- Create, edit, delete projects  
+- Upload thumbnail images  
+- Category and technology tagging  
+- Admin approval workflow  
+- Public page displays approved projects only  
 
-Add technologies & categories
+### Advanced Filtering & Sorting
 
-Edit their own submissions
+- Search by:
+  - Title  
+  - Description  
+  - Author  
+- Filter by category  
+- Sort by:
+  - Newest  
+  - Most viewed  
+  - Highest rated  
 
-2️⃣ Admin
+###  Recruiter Dashboard
 
-Review submitted projects
+- Displays approved submissions only  
+- Shows:
+  - Total approved projects  
+  - Unique students  
+  - Technologies count  
+- Live filtering and refresh functionality  
 
-Approve or reject projects
+### Merchandise Shop
 
-Manage users and merchandise
+- Browse items  
+- Add to cart  
+- Checkout flow  
+- Order tracking  
 
-3️⃣ Recruiter
+### M-Pesa Integration
 
-Access recruiter dashboard
+- STK Push (Sandbox)  
+- Secure credential handling via `.env`  
+- Token generation and payment request handling  
+- Order creation after successful payment  
 
-View approved projects only
+---
 
-Filter by technology
+##  Project Structure
 
-Search by student/team
-
-Evaluate project stack
-
- Core Features
- Authentication
-
-Role-based access control
-
-Secure login via NextAuth
-
-Protected recruiter dashboard
-
-Session-based user state
-
- Project Management
-
-Create, edit, delete projects
-
-Upload thumbnail images
-
-Category and technology tagging
-
-Admin approval workflow
-
-Public page displays approved projects only
-
- Advanced Filtering & Sorting
-
-Search by:
-
-Title
-
-Description
-
-Author
-
-Filter by category
-
-Sort by:
-
-Newest
-
-Most viewed
-
-Highest rated
-
- Recruiter Dashboard
-
-Displays approved submissions only
-
-Shows statistics:
-
-Total approved projects
-
-Unique students
-
-Technologies count
-
-Live filtering and refresh functionality
-
- Merchandise Shop
-
-Browse items
-
-Add to cart
-
-Checkout flow
-
-Order tracking
-
- M-Pesa Integration
-
-STK Push (Sandbox)
-
-Secure credential handling via .env
-
-Token generation & payment request handling
-
-Order creation after successful payment
-
- Project Structure
+```
 innovation_marketplace/
 │
-├── frontend/            # Next.js app
+├── frontend/
 │   ├── app/
 │   ├── components/
 │   ├── lib/
-│   └── ...
 │
-├── server/              # Flask backend
+├── server/
 │   ├── models.py
 │   ├── resources/
 │   ├── migrations/
-│   └── ...
 │
 └── README.md
+```
 
- Installation & Setup
-1️ Clone the Repository
+---
+
+##  Installation & Setup
+
+### 1. Clone Repository
+
+```bash
 git clone https://github.com/your-repo/innovation_marketplace.git
 cd innovation_marketplace
+```
 
-2️⃣ Backend Setup
+---
+
+### 2. Backend Setup
+
+```bash
 cd server
 pipenv install
 pipenv shell
 flask db upgrade
 flask run
+```
 
+Create a `.env` file inside `/server`:
 
-Create a .env file:
+```
+MPESA_CONSUMER_KEY=
+MPESA_CONSUMER_SECRET=
+MPESA_SHORTCODE=
+MPESA_PASSKEY=
+JWT_SECRET_KEY=
+DATABASE_URL=
+```
 
-MPESA_CONSUMER_KEY=your_key
-MPESA_CONSUMER_SECRET=your_secret
-MPESA_SHORTCODE=your_shortcode
-MPESA_PASSKEY=your_passkey
+---
 
-3️⃣ Frontend Setup
+### 3. Frontend Setup
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
-🔄 Approval Workflow
+Create a `.env.local` file inside `/frontend`:
 
-Student submits project
+```
+NEXT_PUBLIC_API_URL=
+NEXTAUTH_SECRET=
+```
 
-Admin reviews project
+---
 
-Admin approves project
+##  Approval Workflow
 
-Project becomes visible on:
+1. Student submits project  
+2. Admin reviews project  
+3. Admin approves project  
+4. Approved project becomes visible on:
+   - Public `/projects` page  
+   - Recruiter dashboard  
+5. Unapproved projects remain hidden  
 
-Public /projects page
+---
 
-Recruiter Dashboard
+##  Security Considerations
 
-Unapproved projects are not publicly accessible.
+- Role-based route protection  
+- Server-side session validation  
+- Protected admin endpoints  
+- Environment variables for sensitive credentials  
+- Secure payment credential handling  
 
- Security Considerations
+---
 
-Role-based route protection
+##  Learning Outcomes
 
-Server-side session validation
+- Full-stack architecture  
+- RESTful API design  
+- Authentication and authorization  
+- Payment gateway integration  
+- Database modeling with SQLAlchemy  
+- State management in React  
+- Secure environment handling  
 
-Hidden GitHub links (to prevent code scraping)
+---
 
-Environment variables for sensitive credentials
+##  Contributors
 
-Protected admin endpoints
+- **Joshua Imbusi** — Frontend & Integration  
+- **Ruth Jelagat** — Frontend & Integration
+- **Castro Kimaru** — Frontend & Integration
+- **Grace Odongo** - Backend 
+- **Mark Wagacha** — Backend 
 
- Future Improvements
 
-Pagination for large datasets
+---
 
-Email notifications on approval
+##  License
 
-Recruiter contact modal with copy-all emails
-
-Analytics dashboard
-
-Production M-Pesa integration
-
-Project bookmarking system
-
- Learning Outcomes
-
-This project demonstrates:
-
-Full-stack architecture
-
-RESTful API design
-
-Authentication & authorization
-
-Payment gateway integration
-
-State management in React
-
-Git branching & PR workflow
-
-UI/UX refinement
-
-Secure environment handling
-
- Contributors
-
-Joshua (Frontend & Integration)
-Grace Odongo 
-Team Members (Backend, Admin workflows, Review system)
-
- License
-
-This project was developed for academic purposes.
+Developed for academic purposes.
