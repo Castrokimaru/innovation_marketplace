@@ -6,7 +6,7 @@ import { Search, ListFilter, ArrowUpDown, X } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { ProjectCard } from '@/components/project-card'
-import { fetchProjects } from '@/lib/api'
+import { fetchApprovedProjects } from '@/lib/api'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,7 +28,7 @@ const CATEGORIES = [
 
 type SortKey = 'newest' | 'views' | 'rating'
 
-type Project = {
+type ApprovedProject = {
   id: number
   title?: string
   description?: string
@@ -36,6 +36,7 @@ type Project = {
   technologies?: string[] | string
   categories?: { name: string }[]
   thumbnail_url?: string | null
+  image?: string | null
   views?: number
   rating?: number
   liked_by_me?: boolean
@@ -46,7 +47,7 @@ function safeNumber(n: unknown, fallback = 0) {
   return typeof n === 'number' && Number.isFinite(n) ? n : fallback
 }
 
-function normalizeTech(tech: Project['technologies']): string[] {
+function normalizeTech(tech: ApprovedProject['technologies']): string[] {
   if (Array.isArray(tech)) return tech
   if (typeof tech === 'string') {
     return tech
@@ -62,7 +63,7 @@ export default function ProjectsPage() {
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>('All')
   const [sortBy, setSortBy] = useState<SortKey>('newest')
 
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ApprovedProject[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -71,14 +72,15 @@ export default function ProjectsPage() {
     setLoading(true)
     setError(null)
 
-    fetchProjects()
+    // ✅ only approved projects
+    fetchApprovedProjects()
       .then((data) => {
         if (!mounted) return
         setProjects(Array.isArray(data) ? data : [])
       })
       .catch(() => {
         if (!mounted) return
-        setError('Failed to load projects. Please refresh and try again.')
+        setError('Failed to load approved projects. Please refresh and try again.')
       })
       .finally(() => {
         if (!mounted) return
@@ -98,7 +100,8 @@ export default function ProjectsPage() {
       const author = (project.submitted_name ?? '').toLowerCase()
 
       const matchesSearch = !q || title.includes(q) || desc.includes(q) || author.includes(q)
-      const matchesCategory = category === 'All' || (project.categories ?? []).some((c) => c?.name === category)
+      const matchesCategory =
+        category === 'All' || (project.categories ?? []).some((c) => c?.name === category)
 
       return matchesSearch && matchesCategory
     })
@@ -109,6 +112,7 @@ export default function ProjectsPage() {
     list.sort((a, b) => {
       if (sortBy === 'views') return safeNumber(b.views, 0) - safeNumber(a.views, 0)
       if (sortBy === 'rating') return safeNumber(b.rating, 0) - safeNumber(a.rating, 0)
+      // newest fallback: higher id first
       return safeNumber(b.id, 0) - safeNumber(a.id, 0)
     })
     return list
@@ -133,7 +137,7 @@ export default function ProjectsPage() {
               <div className="max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
-                    Student Projects
+                    Approved Projects
                   </Badge>
                   <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">
                     {loading ? 'Loading…' : `${filtered.length} results`}
@@ -145,9 +149,11 @@ export default function ProjectsPage() {
                   )}
                 </div>
 
-                <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Explore Projects</h1>
+                <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                  Explore Projects
+                </h1>
                 <p className="mt-2 text-base text-foreground/60 sm:text-lg">
-                  Discover innovative student-built projects across multiple tracks.
+                  Browse only reviewed and approved student-built projects.
                 </p>
               </div>
 
@@ -160,6 +166,7 @@ export default function ProjectsPage() {
                     onClick={() => {
                       setSearch('')
                       setCategory('All')
+                      setSortBy('newest')
                     }}
                     className="h-9"
                   >
@@ -251,7 +258,10 @@ export default function ProjectsPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {sorted.map((project) => {
                   const cat =
-                    (project.categories && project.categories[0] && project.categories[0].name) || 'General'
+                    (project.categories && project.categories[0] && project.categories[0].name) ||
+                    'Approved'
+
+                  const image = (project.thumbnail_url ?? project.image ?? '').trim() || undefined
 
                   return (
                     <ProjectCard
@@ -259,7 +269,7 @@ export default function ProjectsPage() {
                       id={project.id}
                       title={project.title ?? 'Untitled project'}
                       description={project.description ?? 'No description provided.'}
-                      image={project.thumbnail_url ?? undefined}
+                      image={image}
                       technologies={normalizeTech(project.technologies)}
                       category={cat}
                       author={project.submitted_name || 'Team'}
@@ -273,7 +283,7 @@ export default function ProjectsPage() {
               </div>
             ) : (
               <Card className="p-10 text-center">
-                <p className="text-lg font-semibold">No projects found</p>
+                <p className="text-lg font-semibold">No approved projects found</p>
                 <p className="mt-2 text-sm text-foreground/60">
                   Try adjusting your search or selecting a different category.
                 </p>
