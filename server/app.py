@@ -18,7 +18,7 @@ from resources.orders import OrderCreate, OrderDelete
 from resources.admin import CategoryCreate, ApproveProject, RejectProject, AdminUserList
 from resources.recruiters import BrowseProjects
 from resources.likes import ProjectLikeToggle
-from resources.users import UserList
+from resources.users import UserList, UserContact
 
 
 def create_app():
@@ -60,7 +60,10 @@ def create_app():
     api.add_resource(ApproveProject, "/admin/projects/<int:project_id>/approve")
     api.add_resource(RejectProject, "/admin/projects/<int:project_id>/reject")
     api.add_resource(AdminUserList, "/admin/users")
+
     api.add_resource(UserList, "/users")
+    api.add_resource(UserContact, "/users/<int:user_id>/contact")
+
     api.add_resource(BrowseProjects, "/recruiters/projects")
 
     api.add_resource(MpesaPay, "/mpesa/pay")
