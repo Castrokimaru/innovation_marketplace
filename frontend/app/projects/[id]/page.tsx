@@ -9,14 +9,7 @@ import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/use-toast'
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
@@ -42,6 +35,25 @@ type BackendProject = {
   created_at: string
   team_members: BackendTeamMember[]
   categories: BackendCategory[]
+
+  // ✅ NEW: comes from backend now
+  thumbnail_url?: string | null
+}
+
+const FALLBACK_IMAGES = [
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735910/%D8%AF%D9%8A%D8%AC%D9%8A%D8%AA%D8%A7%D9%84_%D9%83%D8%A7%D8%B1%D8%AF_rmval4.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735912/Self_Productivity_jogxol.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735916/Ai-%D1%85%D1%83%D0%B4%D0%BE%D0%B6%D0%BD%D0%B8%D0%BA_h7wj5r.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735910/Friendly_Futuristic_Robot_wbvmbh.jpg',
+  'https://res.cloudinary.com/drxd3fs4g/image/upload/v1770735909/download_2_eeb4ac.jpg',
+]
+
+function resolveProjectImage(src?: string | null) {
+  const s = (src || '').trim()
+  if (!s) return null
+  if (s.startsWith('http://') || s.startsWith('https://')) return s
+  const base = BASE.endsWith('/') ? BASE.slice(0, -1) : BASE
+  return `${base}${s}`
 }
 
 function parseTechnologies(raw: string): string[] {
@@ -128,9 +140,7 @@ export default function ProjectDetailPage() {
   const team = project?.team_members ?? []
   const teamSize = team.length
 
-  const statusLabel = project?.status
-    ? project.status.charAt(0).toUpperCase() + project.status.slice(1)
-    : ''
+  const statusLabel = project?.status ? project.status.charAt(0).toUpperCase() + project.status.slice(1) : ''
 
   const demoLink = project && isProbablyUrl(project.video) ? project.video : undefined
 
@@ -144,9 +154,18 @@ export default function ProjectDetailPage() {
     const emails = (project?.team_members ?? [])
       .map((m) => (m.email ?? '').trim())
       .filter(Boolean)
-   
     return Array.from(new Set(emails))
   }, [project?.team_members])
+
+  const fallback = useMemo(() => {
+    const index = Math.floor(Math.random() * FALLBACK_IMAGES.length)
+    return FALLBACK_IMAGES[index]
+  }, [])
+
+  const heroImage = useMemo(() => {
+    const resolved = resolveProjectImage(project?.thumbnail_url)
+    return resolved || fallback
+  }, [project?.thumbnail_url, fallback])
 
   const onCopyLink = async () => {
     try {
@@ -275,7 +294,7 @@ export default function ProjectDetailPage() {
       <Navbar />
 
       <main>
-        {/* HERO  */}
+        {/* HERO */}
         <section className="relative overflow-hidden border-b border-border">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
           <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
@@ -283,58 +302,94 @@ export default function ProjectDetailPage() {
           <div className="pointer-events-none absolute -bottom-24 right-12 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
           <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div className="max-w-3xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
-                  {categoryLabel}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={`rounded-full px-3 py-1 text-xs border ${getStatusBadgeVariant(project.status)}`}
-                >
-                  {statusLabel}
-                </Badge>
+            <div className="grid gap-8 lg:grid-cols-3 lg:items-start">
+              {/* Left: text */}
+              <div className="lg:col-span-2 max-w-3xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
+                    {categoryLabel}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={`rounded-full px-3 py-1 text-xs border ${getStatusBadgeVariant(project.status)}`}
+                  >
+                    {statusLabel}
+                  </Badge>
+                </div>
+
+                <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{project.title}</h1>
+                <p className="mt-3 text-base text-foreground/60 sm:text-lg">{shortDescription}</p>
+
+                <div className="mt-5 flex flex-wrap gap-4 text-sm text-foreground/60">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>Submitted {formatDate(project.created_at)}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>{teamSize} team members</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span>Submitted by {project.submitted_name}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <Button onClick={onHireClick}>
+                    <BriefcaseBusiness className="mr-2 h-4 w-4" />
+                    Contact / Hire
+                  </Button>
+
+                  {demoLink && (
+                    <a href={demoLink} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline">
+                        <Globe className="mr-2 h-4 w-4" />
+                        Demo
+                      </Button>
+                    </a>
+                  )}
+
+                  <Button variant="outline" onClick={onCopyLink}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    {copiedLink ? 'Copied' : 'Share'}
+                  </Button>
+                </div>
               </div>
 
-              <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{project.title}</h1>
-              <p className="mt-3 text-base text-foreground/60 sm:text-lg">{shortDescription}</p>
-
-              <div className="mt-5 flex flex-wrap gap-4 text-sm text-foreground/60">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Submitted {formatDate(project.created_at)}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{teamSize} team members</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span>Submitted by {project.submitted_name}</span>
-                </div>
-              </div>
-
-              {/* Primary actions */}
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Button onClick={onHireClick}>
-                  <BriefcaseBusiness className="mr-2 h-4 w-4" />
-                  Contact / Hire
-                </Button>
-
-                {demoLink && (
-                  <a href={demoLink} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline">
-                      <Globe className="mr-2 h-4 w-4" />
-                      Demo
-                    </Button>
-                  </a>
-                )}
-
-                <Button variant="outline" onClick={onCopyLink}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  {copiedLink ? 'Copied' : 'Share'}
-                </Button>
+              {/* Right: thumbnail */}
+              <div className="lg:col-span-1">
+                <Card className="overflow-hidden border-border/60 bg-background/70 backdrop-blur">
+                  <div className="relative aspect-video w-full bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={heroImage}
+                      alt={`${project.title} preview`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLImageElement).src = fallback
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-transparent"
+                      aria-hidden="true"
+                    />
+                    <div className="absolute left-3 top-3">
+                      <Badge variant="secondary" className="rounded-full bg-white/90 text-gray-900">
+                        Preview
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm font-medium">Project thumbnail</p>
+                    <p className="mt-1 text-xs text-foreground/60">
+                      Uploaded by the student during submission.
+                    </p>
+                  </div>
+                </Card>
               </div>
             </div>
           </div>
@@ -378,9 +433,7 @@ export default function ProjectDetailPage() {
                     <h2 className="text-xl font-bold sm:text-2xl">Demo</h2>
                     <Card className="border-border/60 bg-background/70 p-6 backdrop-blur">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-sm text-foreground/60">
-                          Open the project demo/video in a new tab.
-                        </div>
+                        <div className="text-sm text-foreground/60">Open the project demo/video in a new tab.</div>
                         <a href={demoLink} target="_blank" rel="noopener noreferrer">
                           <Button>
                             <Globe className="mr-2 h-4 w-4" />
@@ -461,7 +514,7 @@ export default function ProjectDetailPage() {
         {/* HIRE MODAL */}
         <Dialog open={hireOpen} onOpenChange={setHireOpen}>
           <DialogTrigger asChild>
-              <span className="hidden" />
+            <span className="hidden" />
           </DialogTrigger>
 
           <DialogContent className="sm:max-w-lg">
@@ -482,11 +535,7 @@ export default function ProjectDetailPage() {
                         <div className="min-w-0">
                           <p className="truncate text-sm">{email}</p>
                         </div>
-                        <a
-                          href={`mailto:${encodeURIComponent(email)}`}
-                          className="shrink-0"
-                          aria-label={`Email ${email}`}
-                        >
+                        <a href={`mailto:${encodeURIComponent(email)}`} className="shrink-0" aria-label={`Email ${email}`}>
                           <Button size="sm" variant="outline">
                             <Mail className="mr-2 h-4 w-4" />
                             Email

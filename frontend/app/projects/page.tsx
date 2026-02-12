@@ -12,13 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const CATEGORIES = [
   'All',
@@ -41,7 +35,10 @@ type Project = {
   submitted_name?: string
   technologies?: string[] | string
   categories?: { name: string }[]
-  image?: string
+
+  // ✅ NEW: backend field (from GET /projects)
+  thumbnail_url?: string | null
+
   views?: number
   rating?: number
   liked_by_me?: boolean
@@ -104,8 +101,7 @@ export default function ProjectsPage() {
       const author = (project.submitted_name ?? '').toLowerCase()
 
       const matchesSearch = !q || title.includes(q) || desc.includes(q) || author.includes(q)
-      const matchesCategory =
-        category === 'All' || (project.categories ?? []).some((c) => c?.name === category)
+      const matchesCategory = category === 'All' || (project.categories ?? []).some((c) => c?.name === category)
 
       return matchesSearch && matchesCategory
     })
@@ -152,9 +148,7 @@ export default function ProjectsPage() {
                   )}
                 </div>
 
-                <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                  Explore Projects
-                </h1>
+                <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Explore Projects</h1>
                 <p className="mt-2 text-base text-foreground/60 sm:text-lg">
                   Discover innovative student-built projects across multiple tracks.
                 </p>
@@ -260,8 +254,7 @@ export default function ProjectsPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {sorted.map((project) => {
                   const cat =
-                    (project.categories && project.categories[0] && project.categories[0].name) ||
-                    'General'
+                    (project.categories && project.categories[0] && project.categories[0].name) || 'General'
 
                   return (
                     <ProjectCard
@@ -269,7 +262,10 @@ export default function ProjectsPage() {
                       id={project.id}
                       title={project.title ?? 'Untitled project'}
                       description={project.description ?? 'No description provided.'}
-                      image={project.image}
+
+                      // ✅ IMPORTANT: pass backend thumbnail_url into ProjectCard
+                      image={project.thumbnail_url ?? undefined}
+
                       technologies={normalizeTech(project.technologies)}
                       category={cat}
                       author={project.submitted_name || 'Team'}
@@ -278,7 +274,6 @@ export default function ProjectsPage() {
                       liked={project.liked_by_me ?? false}
                       likesCount={project.likes_count ?? 0}
                     />
-
                   )
                 })}
               </div>
