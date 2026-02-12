@@ -16,10 +16,7 @@ interface ProjectCardProps {
   id: number
   title: string
   description: string
-
-  // backend thumbnail_url might be a relative path like "/uploads/xxx.png"
   image?: string
-
   technologies?: string[] | string
   category: string
   author: string
@@ -48,10 +45,8 @@ function resolveImageUrl(src: string, fallback: string) {
   const s = (src || '').trim()
   if (!s) return fallback
 
-  // absolute
   if (s.startsWith('http://') || s.startsWith('https://')) return s
 
-  // relative -> BASE + path (handle missing/extra slashes safely)
   const base = (BASE || '').replace(/\/+$/, '')
   if (!base) return s.startsWith('/') ? s : `/${s}`
 
@@ -83,13 +78,11 @@ export function ProjectCard({
   const [likeCount, setLikeCount] = useState<number>(likesCount)
   const [likeLoading, setLikeLoading] = useState(false)
 
-  // ✅ deterministic fallback (same project => same fallback everywhere)
   const fallbackById = useMemo(() => {
     const idx = Math.abs(Number(id) || 0) % fallbackImages.length
     return fallbackImages[idx]
   }, [id])
 
-  // ✅ resolved image (thumbnail_url OR fallback)
   const resolvedImage = useMemo(() => {
     return resolveImageUrl(image ?? '', fallbackById)
   }, [image, fallbackById])
@@ -120,7 +113,6 @@ export function ProjectCard({
 
     const nextLiked = !isLiked
 
-    // optimistic update
     setIsLiked(nextLiked)
     setLikeCount((c) => Math.max(0, c + (nextLiked ? 1 : -1)))
 
@@ -135,7 +127,6 @@ export function ProjectCard({
       if (typeof res.liked === 'boolean') setIsLiked(res.liked)
       if (typeof res.likes_count === 'number') setLikeCount(res.likes_count)
     } catch {
-      // revert on failure
       setIsLiked((prev) => !prev)
       setLikeCount((c) => Math.max(0, c + (nextLiked ? -1 : 1)))
     } finally {
@@ -202,7 +193,6 @@ export function ProjectCard({
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
           onError={(e) => {
-            // if the thumbnail path is broken, fall back deterministically
             ;(e.currentTarget as HTMLImageElement).src = fallbackById
           }}
         />

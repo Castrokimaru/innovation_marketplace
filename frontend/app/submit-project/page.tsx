@@ -32,8 +32,7 @@ function parseTechnologies(raw: string): string[] {
     .filter(Boolean)
 }
 
-// ✅ Thumbnail validation
-const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024 // 3MB
+const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024 
 const ALLOWED_THUMB_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
 
 const schema = z.object({
@@ -56,8 +55,6 @@ const schema = z.object({
   technologies: z.string().trim().min(2, 'Technologies is required (e.g. React, Flask)'),
   category: z.enum(CATEGORY_OPTIONS),
   contributors: z.array(z.number()).optional(),
-
-  // ✅ NEW: thumbnail file (optional)
   thumbnail: z
     .instanceof(File)
     .optional()
@@ -83,7 +80,6 @@ export default function SubmitProjectPage() {
   const [userOptions, setUserOptions] = useState<UserOption[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
 
-  // ✅ thumbnail preview
   const [thumbPreview, setThumbPreview] = useState<string | null>(null)
 
   useEffect(() => {
@@ -116,7 +112,6 @@ export default function SubmitProjectPage() {
 
         setUserOptions(opts)
       } catch (e) {
-        // optionally toast
       } finally {
         if (!cancelled) setUsersLoading(false)
       }
@@ -144,7 +139,7 @@ export default function SubmitProjectPage() {
       technologies: '',
       category: 'Other',
       contributors: [],
-      thumbnail: undefined, // ✅
+      thumbnail: undefined, 
     },
     mode: 'onTouched',
   })
@@ -167,7 +162,6 @@ export default function SubmitProjectPage() {
 
     const submitted_name = (session?.user as any)?.username || (session?.user as any)?.email || 'Student'
 
-    // ✅ Build FormData when we might have a file
     const fd = new FormData()
     fd.append('title', values.title.trim())
     fd.append('description', values.description.trim())
@@ -184,7 +178,6 @@ export default function SubmitProjectPage() {
     }
 
     try {
-      // ✅ createProject now supports FormData
       await createProject(fd as any, String(token))
 
       toast({
@@ -305,14 +298,13 @@ export default function SubmitProjectPage() {
               <FieldError message={errors.github_url?.message} />
             </div>
 
-            {/* ✅ Thumbnail / Screenshot */}
+            {/* Thumbnail / Screenshot */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Thumbnail / Screenshot (optional)</label>
 
               <div className="grid gap-3 sm:grid-cols-[160px_1fr] sm:items-start">
                 <div className="h-28 w-full overflow-hidden rounded-lg border bg-muted">
                   {thumbPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={thumbPreview} alt="Thumbnail preview" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-foreground/60">

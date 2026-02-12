@@ -21,7 +21,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Mail, Search, RefreshCcw, Star } from 'lucide-react'
 import { fetchProjects } from '@/lib/api'
 
-const DEFAULT_AVATAR = '👩‍💻'
+const DEFAULT_AVATAR = '👤'
 
 interface Talent {
   id: string | number

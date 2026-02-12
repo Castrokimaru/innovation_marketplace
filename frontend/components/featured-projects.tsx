@@ -149,7 +149,7 @@ export function FeaturedProjects() {
           )}
 
           {/* CTA */}
-          <div className="flex justify-center pt-2">
+          {/* <div className="flex justify-center pt-2">
             <Button
               size="lg"
               variant="outline"
@@ -160,7 +160,7 @@ export function FeaturedProjects() {
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
               />
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
     </section>
