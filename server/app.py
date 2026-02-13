@@ -57,9 +57,12 @@ def create_app():
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     CORS(
         app,
-        resources={r"/*": {"origins": [frontend_url]}},
         supports_credentials=True,
+        resources={r"/*": {"origins": [
+            "https://frontend-teal-seven-91.vercel.app"
+        ]}}
     )
+
 
     api = Api(app)
 
