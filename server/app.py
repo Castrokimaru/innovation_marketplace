@@ -21,22 +21,48 @@ from resources.likes import ProjectLikeToggle
 from resources.users import UserList, UserContact
 
 
+def _get_database_url() -> str:
+    """
+    Render provides DATABASE_URL often starting with postgres://
+    SQLAlchemy expects postgresql://
+    """
+    url = os.getenv("DATABASE_URL", "").strip()
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    return url
+
+
 def create_app():
     app = Flask(__name__)
 
+    # DB: use cloud DATABASE_URL, fallback to local dev DB
     app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "postgresql+psycopg2://biboko:12345678@localhost:5432/moringa_innovation_marketplace_db"
+        _get_database_url()
+        or "postgresql+psycopg2://biboko:12345678@localhost:5432/moringa_innovation_marketplace_db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    # JWT
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret-key")
 
+    # uploads
     app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads")
 
     db.init_app(app)
     Migrate(app, db)
     JWTManager(app)
 
-    CORS(app)
+    # CORS: lock to frontend in production
+    # Set FRONTEND_URL on Render to Vercel domain e.g. https://innovation-marketplace.vercel.app
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    CORS(
+        app,
+        supports_credentials=True,
+        resources={r"/*": {"origins": [
+            "https://frontend-teal-seven-91.vercel.app"
+        ]}}
+    )
+
 
     api = Api(app)
 
@@ -71,8 +97,7 @@ def create_app():
 
     @app.route("/uploads/<path:filename>")
     def uploads(filename):
-        uploads_dir = app.config["UPLOAD_FOLDER"]
-        return send_from_directory(uploads_dir, filename)
+        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
     @app.route("/")
     def home():
@@ -85,4 +110,3 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
-    print(app.url_map)
